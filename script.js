@@ -27,11 +27,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             campaignsListElement.innerHTML = '<p>Carregando campanhas...</p>';
 
             // 1. Constrói a URL para a API Graph do Meta
-            // Estamos buscando o nome e o gasto ('spend') de cada campanha.
-            // O 'limit=100' pode ser ajustado para o número máximo de campanhas que você espera.
-            // A versão da API (v19.0) é a mais recente no momento. Verifique a documentação do Meta
-            // para garantir que você está usando a versão mais atual se houver problemas futuros.
-            const apiUrl = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/campaigns?fields=name,spend&limit=100&access_token=${ACCESS_TOKEN}`;
+            // Adicionado 'daily_budget' aos campos solicitados.
+            // Para ROAS, compras e valor da conversão, você precisaria consultar o endpoint /insights
+            // Exemplo (apenas para referência, não implementado aqui):
+            // `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/insights?fields=spend,actions,action_values&time_range={'since':'YYYY-MM-DD','until':'YYYY-MM-DD'}&level=campaign&access_token=${ACCESS_TOKEN}`
+            const apiUrl = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/campaigns?fields=name,spend,daily_budget&limit=100&access_token=${ACCESS_TOKEN}`;
 
             // 2. Faz a requisição HTTP para a API do Meta
             const campaignsResponse = await fetch(apiUrl);
@@ -62,12 +62,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const spend = parseFloat(campaign.spend || 0);
                     totalSpend += spend;
 
+                    // Obtém o orçamento diário, se disponível
+                    const dailyBudget = parseFloat(campaign.daily_budget || 0);
+                    const dailyBudgetDisplay = dailyBudget > 0 ? ` (Orçamento Diário: ${formatCurrency(dailyBudget)})` : '';
+
                     // Cria um elemento HTML para cada campanha e adiciona à lista
                     const campaignItem = document.createElement('div');
                     campaignItem.classList.add('campaign-item'); // Adiciona a classe CSS para estilização
                     campaignItem.innerHTML = `
                         <strong>${campaign.name}</strong>
-                        <span>${formatCurrency(spend)}</span>
+                        <span>${formatCurrency(spend)}${dailyBudgetDisplay}</span>
                     `;
                     campaignsListElement.appendChild(campaignItem);
                 });
