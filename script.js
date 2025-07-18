@@ -117,9 +117,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Lógica para construir a URL da API com base no agrupamento selecionado
             // A chave aqui é como 'campaign_name' é incluído nos fields.
             if (currentTimeIncrement === 'daily' || currentTimeIncrement === 'hourly') {
-                // Para agrupamentos diários/horários, solicitamos no nível da campanha
-                // e o 'campaign_name' será retornado implicitamente.
-                // Não o incluímos explicitamente nos 'fields' para evitar o erro.
+                // Para agrupamentos diários/horários, solicitamos no nível da campanha.
+                // Não incluímos 'campaign_name' explicitamente nos 'fields' para evitar o erro.
+                // A API deve retornar o campaign_name implicitamente quando level=campaign.
                 apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
                            `fields=${baseFields}&` + // 'campaign_name' NÃO está aqui
                            `time_range={'since':'${since}','until':'${until}'}&` +
