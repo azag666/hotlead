@@ -1,49 +1,105 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
-  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  background: #f4f7fa;
+  color: #333;
+}
+
+header {
+  background-color: #2e86de;
+  color: white;
+  text-align: center;
+  padding: 30px 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 h1 {
-  text-align: center;
-  color: #2c3e50;
+  margin: 0;
+  font-size: 28px;
 }
 
-.filters {
+.filtros {
+  max-width: 960px;
+  margin: 30px auto;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 400px;
-  margin: auto;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
 }
 
-.filters label {
+.filtros label {
+  width: 100%;
   font-weight: bold;
 }
 
-button {
+.filtros select,
+.filtros input[type="date"],
+.filtros button {
   padding: 10px;
-  background: #3498db;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 220px;
+}
+
+.filtros button {
+  background: #2e86de;
   color: white;
   border: none;
   cursor: pointer;
 }
 
-button:hover {
-  background: #2980b9;
+.filtros button:hover {
+  background: #1b66c9;
 }
 
 #resultados {
-  margin-top: 30px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 1100px;
+  margin: auto;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
 }
 
 .campanha {
   background: white;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 6px solid #2e86de;
+  transition: transform 0.2s;
+}
+
+.campanha:hover {
+  transform: scale(1.02);
+}
+
+.status {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.status.ACTIVE {
+  background: #28a745;
+  color: white;
+}
+.status.PAUSED {
+  background: #f39c12;
+  color: white;
+}
+.status.ARCHIVED {
+  background: #6c757d;
+  color: white;
+}
+.status.IN_PROCESS, .status.PENDING_REVIEW {
+  background: #17a2b8;
+  color: white;
 }
