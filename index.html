@@ -1,16 +1,44 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Visualizador de Campanhas Meta</title>
-  <link rel="stylesheet" href="style.css"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard Meta Ads - Dark Mode</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>📊 Tracker de Campanhas Meta</h1>
-  <div id="loading">Carregando dados...</div>
-  <div id="data-container"></div>
+  <header>
+    <h1>📊 Dashboard Meta Ads</h1>
+    <div class="account-selector">
+      <label for="accountSelect">Selecionar Conta de Anúncio:</label>
+      <select id="accountSelect"></select>
+    </div>
 
-  <script src="script.js"></script>
+    <div class="date-filters">
+      <label for="startDate">Data Inicial:</label>
+      <input type="date" id="startDate" />
+      <label for="endDate">Data Final:</label>
+      <input type="date" id="endDate" />
+      <button id="btnRefresh">Atualizar Dados</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-button active" data-tab="campanhas">Campanhas</button>
+    <button class="tab-button" data-tab="adsets">Conjuntos (Ad Sets)</button>
+    <button class="tab-button" data-tab="ads">Anúncios</button>
+  </nav>
+
+  <main>
+    <section id="campanhas" class="tab-content active"></section>
+    <section id="adsets" class="tab-content"></section>
+    <section id="ads" class="tab-content"></section>
+  </main>
+
+  <footer>
+    <p>Dashboard criado para uso pessoal.</p>
+  </footer>
+
+<script src="script.js"></script>
 </body>
 </html>
