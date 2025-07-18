@@ -3,19 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Dashboard Meta Ads</title>
+    <title>Meu Dashboard Meta Ads Avançado</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <h1>Dashboard Meta Ads</h1>
-        <div class="summary">
-            <p>Gasto Total: <span id="totalSpend">Carregando...</span></p>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="adAccountSelect">Selecionar Conta de Anúncios:</label>
+                <select id="adAccountSelect" class="select-box"></select>
+            </div>
+
+            <div class="control-group">
+                <label>Período:</label>
+                <button class="filter-button active" data-time-range="today">Hoje</button>
+                <button class="filter-button" data-time-range="yesterday">Ontem</button>
+                <button class="filter-button" data-time-range="last_7_days">Últimos 7 Dias</button>
+            </div>
+
+            <div class="control-group">
+                <label>Agrupamento:</label>
+                <button class="increment-button active" data-time-increment="daily">Por Dia</button>
+                <button class="increment-button" data-time-increment="hourly">Por Hora</button>
+            </div>
         </div>
 
-        <h2>Gastos por Campanha</h2>
-        <div id="campaignsList">
-            <p>Carregando campanhas...</p>
+        <div class="summary-metrics">
+            <div class="metric-card">
+                <h3>Gasto Total</h3>
+                <p id="totalSpend" class="metric-value">Carregando...</p>
+            </div>
+            <div class="metric-card">
+                <h3>ROAS</h3>
+                <p id="totalRoas" class="metric-value">Carregando...</p>
+            </div>
+            <div class="metric-card">
+                <h3>Compras</h3>
+                <p id="totalPurchases" class="metric-value">Carregando...</p>
+            </div>
+            <div class="metric-card">
+                <h3>Valor Conversão</h3>
+                <p id="totalConversionValue" class="metric-value">Carregando...</p>
+            </div>
+        </div>
+
+        <h2>Detalhes por Período/Campanha</h2>
+        <div id="insightsDisplay">
+            <p>Selecione uma conta e período para visualizar os dados.</p>
         </div>
     </div>
 
