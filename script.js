@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentSelectedAccountId = AD_ACCOUNT_IDS[0].id; // Define a primeira conta como padrão
     let currentTimeRange = 'today'; // Define 'today' como período padrão
     let currentTimeIncrement = 'daily'; // Define 'daily' como agrupamento padrão
+    let campaignNamesMap = new Map(); // Mapa para armazenar IDs de campanha para nomes
 
     // Função para formatar valores monetários para Real Brasileiro (BRL)
     const formatCurrency = (value) => {
@@ -99,6 +100,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     };
 
+    // Função para buscar os nomes das campanhas e mapeá-los por ID
+    const fetchCampaignNames = async (accountId) => {
+        const campaignsUrl = `https://graph.facebook.com/v19.0/${accountId}/campaigns?fields=id,name&access_token=${ACCESS_TOKEN}`;
+        const response = await fetch(campaignsUrl);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Erro ao buscar nomes das campanhas: ${errorData.error.message}`);
+        }
+        const data = await response.json();
+        campaignNamesMap.clear(); // Limpa o mapa anterior
+        data.data.forEach(campaign => {
+            campaignNamesMap.set(campaign.id, campaign.name);
+        });
+    };
+
     // Função principal para carregar e exibir os dados do Meta Ads
     const loadMetaAdsData = async () => {
         // Define o estado inicial de carregamento para todas as métricas e display
@@ -109,19 +125,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         insightsDisplayElement.innerHTML = '<p>Carregando dados...</p>';
 
         try {
+            // Primeiro, busca os nomes das campanhas para a conta selecionada
+            await fetchCampaignNames(currentSelectedAccountId);
+
             const { since, until } = getTimeRangeDates(currentTimeRange);
 
             let apiUrl;
             const baseFields = 'spend,actions,action_values,roas'; // Campos comuns a todas as requisições
 
             // Lógica para construir a URL da API com base no agrupamento selecionado
-            // A chave aqui é como 'campaign_name' é incluído nos fields.
             if (currentTimeIncrement === 'daily' || currentTimeIncrement === 'hourly') {
-                // Para agrupamentos diários/horários, solicitamos no nível da campanha.
-                // Não incluímos 'campaign_name' explicitamente nos 'fields' para evitar o erro.
-                // A API deve retornar o campaign_name implicitamente quando level=campaign.
+                // Para agrupamentos diários/horários, consultamos no nível da conta (level=account)
+                // e usamos breakdowns=campaign_id para obter os detalhes por campanha.
+                // Não solicitamos 'campaign_name' nos fields aqui para evitar o erro.
                 apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
-                           `fields=${baseFields}&` + // 'campaign_name' NÃO está aqui
+                           `fields=${baseFields}&` +
                            `time_range={'since':'${since}','until':'${until}'}&` +
                            `time_increment=${currentTimeIncrement}&` +
                            `level=campaign&` + // Nível da campanha
@@ -130,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Para 'all_days', podemos solicitar 'campaign_name' explicitamente nos fields
                 // pois essa combinação é permitida com level=campaign.
                 apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
-                           `fields=campaign_name,${baseFields}&` + // 'campaign_name' ESTÁ aqui
+                           `fields=campaign_name,${baseFields}&` +
                            `time_range={'since':'${since}','until':'${until}'}&` +
                            `time_increment=${currentTimeIncrement}&` + // Será 'all_days'
                            `level=campaign&` + // Nível da campanha
@@ -200,9 +218,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     let itemContent = `<strong>${periodDisplay}</strong><br>`;
 
-                    // O nome da campanha deve vir em 'campaign_name' se level=campaign for usado
-                    // independentemente de estar nos fields para daily/hourly.
-                    itemContent += `<div class="label">Campanha:</div><span>${insight.campaign_name || 'N/A'}</span>`;
+                    // Obtém o nome da campanha usando o mapa, se disponível
+                    const campaignName = campaignNamesMap.get(insight.campaign_id) || insight.campaign_name || 'N/A';
+                    itemContent += `<div class="label">Campanha:</div><span>${campaignName}</span>`;
                     
                     itemContent += `<div class="label">Gasto:</div><span>${formatCurrency(parseFloat(insight.spend || 0))}</span>`;
                     
