@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Certifique-se de que seu Token de Acesso tem permissões para todas essas contas.
     const AD_ACCOUNT_IDS = [
         { id: 'act_1073555467565665', name: 'Conta de Anúncios 1' },
-        { id: 'act_1421566932486575', name: 'Conta de Anúncios 2' }, // Seu ID anterior
+        { id: 'act_1421566932486575', name: 'Conta de Anúncios 2' },
         { id: 'act_507111372463621', name: 'Conta de Anúncios 3' },
         { id: 'act_735462832220538', name: 'Conta de Anúncios 4' },
         { id: 'act_1767547067979139', name: 'Conta de Anúncios 5' }
