@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HotLead Dashboard - Visualização Profissional</title>
+    <title>HotLead Dashboard - Profissional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -13,31 +12,62 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
-        /* Garante que o html, body e o root ocupem 100% da altura para layouts flexíveis */
         html, body, #root {
             height: 100%;
         }
-        /* Estilos adicionais para melhorar a legibilidade de texto truncado */
         .truncate-text {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
-        /* Estilos de transição para o dark mode toggle */
         #darkModeToggle.spin-active {
             animation: spin 0.5s forwards;
         }
-
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-
-        /* Estilos para o ícone de atualização */
         .group:hover .rotate-on-hover {
             transform: rotate(360deg);
             transition: transform 0.5s ease-in-out;
+        }
+        /* Custom scrollbar for dark mode */
+        .dark ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #333;
+            border-radius: 10px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .custom-table th, .custom-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #4a4a4a; /* Darker border for dark theme */
+        }
+        .custom-table th {
+            background-color: #3a3a3a; /* Slightly lighter header for dark theme */
+            color: #e0e0e0;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .custom-table tr:hover {
+            background-color: #2a2a2a; /* Lighter hover for dark theme */
         }
     </style>
 </head>
@@ -46,6 +76,62 @@
 
     <script type="text/babel">
         const { useState, useEffect, useCallback } = React;
+
+        // --- Funções de Ajuda ---
+        const formatCurrency = (value) => {
+            const num = Number(value);
+            if (isNaN(num)) return "R$ 0,00";
+            return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        };
+
+        const formatDate = (dateStr) => {
+            if (!dateStr) return "-";
+            const d = new Date(dateStr);
+            return d.toLocaleDateString("pt-BR");
+        };
+
+        const calculateProfit = (revenue, spending) => {
+            return revenue - spending;
+        };
+
+        // --- Mock Data (Dados de simulação para desenvolvimento) ---
+        // Em um ambiente real, estes dados viriam de APIs do seu backend ou das plataformas.
+
+        const MOCK_SALES_DATA = [
+            { id: 'sale1', botId: 'bot_alpha', amount: 120.00, pixStatus: 'paid', date: '2025-07-15T10:00:00Z', product: 'Curso A', customer: 'João Silva' },
+            { id: 'sale2', botId: 'bot_beta', amount: 85.50, pixStatus: 'generated', date: '2025-07-15T11:30:00Z', product: 'Ebook B', customer: 'Maria Souza' },
+            { id: 'sale3', botId: 'bot_alpha', amount: 250.00, pixStatus: 'paid', date: '2025-07-16T14:15:00Z', product: 'Mentoria C', customer: 'Carlos Lima' },
+            { id: 'sale4', botId: 'bot_gamma', amount: 45.00, pixStatus: 'paid', date: '2025-07-16T16:45:00Z', product: 'Planilha D', customer: 'Ana Paula' },
+            { id: 'sale5', botId: 'bot_beta', amount: 180.00, pixStatus: 'paid', date: '2025-07-17T09:00:00Z', product: 'Software E', customer: 'Pedro Costa' },
+            { id: 'sale6', botId: 'bot_alpha', amount: 99.90, pixStatus: 'generated', date: '2025-07-17T13:00:00Z', product: 'Workshop F', customer: 'Fernanda Dias' },
+            { id: 'sale7', botId: 'bot_gamma', amount: 300.00, pixStatus: 'paid', date: '2025-07-17T15:00:00Z', product: 'Consultoria G', customer: 'Roberto Alves' },
+            { id: 'sale8', botId: 'bot_alpha', amount: 50.00, pixStatus: 'paid', date: '2025-07-18T08:00:00Z', product: 'Plugin H', customer: 'Mariana Santos' },
+            { id: 'sale9', botId: 'bot_beta', amount: 110.00, pixStatus: 'generated', date: '2025-07-18T12:00:00Z', product: 'Template I', customer: 'Lucas Rocha' },
+            { id: 'sale10', botId: 'bot_gamma', amount: 75.00, pixStatus: 'paid', date: '2025-07-18T14:00:00Z', product: 'Guia J', customer: 'Juliana Castro' },
+        ];
+
+        const MOCK_BOTS_DATA = [
+            { id: 'bot_alpha', name: 'Bot Alfa de Vendas', status: 'ativo', token: 'token_alfa_123' },
+            { id: 'bot_beta', name: 'Bot Beta de Suporte', status: 'ativo', token: 'token_beta_456' },
+            { id: 'bot_gamma', name: 'Bot Gamma de Marketing', status: 'inativo', token: 'token_gamma_789' },
+            { id: 'bot_delta', name: 'Bot Delta de Notificações', status: 'ativo', token: 'token_delta_abc' },
+        ];
+
+        const MOCK_ADSETS_DATA = [
+            { id: 'adset_1', name: 'Conjunto de Anúncios Verão 2025', status: 'ACTIVE', campaign_id: '1', objective: 'LEAD_GENERATION', spend: 350.50, impressions: 50000, clicks: 1200 },
+            { id: 'adset_2', name: 'Conjunto de Anúncios Inverno 2025', status: 'PAUSED', campaign_id: '1', objective: 'PURCHASE', spend: 120.00, impressions: 15000, clicks: 300 },
+            { id: 'adset_3', name: 'Conjunto de Anúncios Oferta Relâmpago', status: 'ACTIVE', campaign_id: '2', objective: 'CONVERSION', spend: 800.00, impressions: 80000, clicks: 2500 },
+        ];
+
+        const MOCK_ADS_DATA = [
+            { id: 'ad_1', name: 'Criativo Carrossel Produto A', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://example.com/ad1.jpg', spend: 200.00, impressions: 25000, clicks: 500 },
+            { id: 'ad_2', name: 'Criativo Vídeo Depoimento B', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://example.com/ad2.mp4', spend: 150.50, impressions: 25000, clicks: 700 },
+            { id: 'ad_3', name: 'Criativo Imagem Única Desconto', status: 'ACTIVE', adset_id: 'adset_3', preview_url: 'https://example.com/ad3.png', spend: 400.00, impressions: 40000, clicks: 1200 },
+            { id: 'ad_4', name: 'Criativo Story CTA', status: 'PAUSED', adset_id: 'adset_3', preview_url: 'https://example.com/ad4.gif', spend: 400.00, impressions: 40000, clicks: 1300 },
+        ];
+
+
+        // --- Componentes ---
 
         // Componente de Cabeçalho (Header)
         function Header({ onNavigate, currentPage, toggleDarkMode, isDarkMode }) {
@@ -68,12 +154,14 @@
                             <ul className="flex flex-wrap space-x-2 md:space-x-6 justify-center">
                                 <li><a href="#" onClick={() => onNavigate('dashboard')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'dashboard' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-chart-line mr-2"></i> Dashboard</a></li>
                                 <li><a href="#" onClick={() => onNavigate('sales')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'sales' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-dollar-sign mr-2"></i> Vendas</a></li>
-                                <li><a href="#" onClick={() => onNavigate('models')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'models' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-users mr-2"></i> Modelos</a></li>
-                                {/* === NOVO LINK DE NAVEGAÇÃO PARA CAMPANHAS === */}
-                                <li><a href="#" onClick={() => onNavigate('campaigns')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'campaigns' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-bullhorn mr-2"></i> Campanhas</a></li>
+                                {/* === ATUALIZADO: MODELOS TROCA POR BOTS === */}
+                                <li><a href="#" onClick={() => onNavigate('bots')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'bots' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-robot mr-2"></i> Bots</a></li>
+                                {/* === REMOVIDO: CONQUISTAS ===
                                 <li><a href="#" onClick={() => onNavigate('achievements')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'achievements' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-trophy mr-2"></i> Conquistas</a></li>
+                                */}
                                 <li><a href="#" onClick={() => onNavigate('integrations')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'integrations' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plug mr-2"></i> Integrações</a></li>
                                 <li><a href="#" onClick={() => onNavigate('create-checkout')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'create-checkout' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plus-circle mr-2"></i> Criar Checkout</a></li>
+                                <li><a href="#" onClick={() => onNavigate('campaigns')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'campaigns' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-bullhorn mr-2"></i> Campanhas</a></li>
                             </ul>
                         </nav>
                         <button
@@ -89,91 +177,498 @@
             );
         }
 
-        // Componente de Dashboard (Exemplo)
+        // --- DASHBOARD Componente (1 - Atualizado) ---
         function Dashboard() {
+            const [startDate, setStartDate] = useState('');
+            const [endDate, setEndDate] = useState('');
+            const [salesData, setSalesData] = useState([]);
+            const [campaignsData, setCampaignsData] = useState([]); // from CampaignPage's API logic
+
+            const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
+            const defaultAccountId = "507111372463621"; // Using a default account for dashboard metrics
+
+            const fetchMetrics = useCallback(async (start, end) => {
+                // Simulate fetching sales data
+                const filteredSales = MOCK_SALES_DATA.filter(sale => {
+                    const saleDate = new Date(sale.date);
+                    const startObj = new Date(start);
+                    const endObj = new Date(end);
+                    return saleDate >= startObj && saleDate <= endObj;
+                });
+                setSalesData(filteredSales);
+
+                // Re-use CampaignPage's fetch logic for spending
+                try {
+                    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${defaultAccountId}/insights`);
+                    urlInsights.searchParams.set("level", "account"); // Get account level insights
+                    urlInsights.searchParams.set("fields", "spend");
+                    urlInsights.searchParams.set("time_range", JSON.stringify({ since: start, until: end }));
+                    urlInsights.searchParams.set("access_token", TOKEN);
+
+                    const res = await fetch(urlInsights);
+                    const data = await res.json();
+                    if (data.error) throw new Error(`Erro ao buscar gastos: ${data.error.message}`);
+                    setCampaignsData(data.data || []); // This will be total spending for the period
+                } catch (e) {
+                    console.error("Erro ao buscar gastos para o dashboard:", e);
+                    setCampaignsData([]);
+                }
+            }, [TOKEN]);
+
+            useEffect(() => {
+                const today = new Date();
+                const lastMonth = new Date(today);
+                lastMonth.setDate(today.getDate() - 30); // Last 30 days
+
+                const defaultEndDate = today.toISOString().slice(0, 10);
+                const defaultStartDate = lastMonth.toISOString().slice(0, 10);
+
+                setStartDate(defaultStartDate);
+                setEndDate(defaultEndDate);
+                fetchMetrics(defaultStartDate, defaultEndDate);
+            }, [fetchMetrics]);
+
+            const totalSales = salesData.reduce((sum, sale) => sum + sale.amount, 0);
+            const totalSpending = campaignsData.reduce((sum, insight) => sum + parseFloat(insight.spend || 0), 0);
+            const totalProfit = totalSales - totalSpending;
+
+            // Group sales and spending by bot for per-bot metrics
+            const botsMetrics = MOCK_BOTS_DATA.map(bot => {
+                const botSales = salesData.filter(sale => sale.botId === bot.id);
+                const botRevenue = botSales.reduce((sum, sale) => sum + sale.amount, 0);
+                // For simplicity, attributing 50% of total spending to each active bot for mock
+                // In reality, this would require campaign data linked to specific bots.
+                const botSpending = bot.status === 'ativo' ? totalSpending / MOCK_BOTS_DATA.filter(b => b.status === 'ativo').length : 0;
+                const botProfit = botRevenue - botSpending;
+                return { ...bot, revenue: botRevenue, spending: botSpending, profit: botProfit };
+            });
+
             return (
-                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
                     <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Dashboard Principal</h2>
-                    <p className="text-gray-300 text-center">Bem-vindo ao seu dashboard. Utilize a navegação acima para explorar as funcionalidades.</p>
-                    {/* Aqui você pode adicionar gráficos e métricas */}
-                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center">
-                            <i className="fas fa-chart-bar text-5xl text-blue-400 mb-3"></i>
-                            <h3 className="text-xl font-bold mb-2">Métricas Chave</h3>
-                            <p className="text-gray-300">Visão geral do desempenho.</p>
+
+                    {/* Filters for Dashboard */}
+                    <div className="flex flex-wrap items-center justify-center gap-6 mb-8 p-4 bg-gray-700 rounded-md">
+                        <div className="flex flex-col">
+                            <label htmlFor="dashboardStartDate" className="text-gray-300 text-sm font-medium mb-1">Data Início:</label>
+                            <input
+                                type="date"
+                                id="dashboardStartDate"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            />
                         </div>
-                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center">
-                            <i className="fas fa-eye text-5xl text-purple-400 mb-3"></i>
-                            <h3 className="text-xl font-bold mb-2">Engajamento</h3>
-                            <p className="text-gray-300">Entenda seus usuários.</p>
+                        <div className="flex flex-col">
+                            <label htmlFor="dashboardEndDate" className="text-gray-300 text-sm font-medium mb-1">Data Fim:</label>
+                            <input
+                                type="date"
+                                id="dashboardEndDate"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            />
                         </div>
-                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center">
-                            <i className="fas fa-wallet text-5xl text-yellow-400 mb-3"></i>
-                            <h3 className="text-xl font-bold mb-2">Faturamento</h3>
-                            <p className="text-gray-300">Acompanhe suas vendas.</p>
+                        <button
+                            onClick={() => fetchMetrics(startDate, endDate)}
+                            className="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2.5 px-6 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center group"
+                        >
+                            <i className="fas fa-sync-alt mr-2 rotate-on-hover"></i>
+                            Atualizar
+                        </button>
+                    </div>
+
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center text-center">
+                            <i className="fas fa-dollar-sign text-5xl text-blue-400 mb-3"></i>
+                            <h3 className="text-xl font-bold mb-2">Vendas Totais</h3>
+                            <p className="text-gray-300 text-2xl font-semibold">{formatCurrency(totalSales)}</p>
                         </div>
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center text-center">
+                            <i className="fas fa-hand-holding-usd text-5xl text-red-400 mb-3"></i>
+                            <h3 className="text-xl font-bold mb-2">Gastos Totais</h3>
+                            <p className="text-gray-300 text-2xl font-semibold">{formatCurrency(totalSpending)}</p>
+                        </div>
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center text-center">
+                            <i className="fas fa-coins text-5xl text-green-400 mb-3"></i>
+                            <h3 className="text-xl font-bold mb-2">Lucro Total</h3>
+                            <p className="text-gray-300 text-2xl font-semibold">{formatCurrency(totalProfit)}</p>
+                        </div>
+                    </div>
+
+                    {/* Bots Ativos Section */}
+                    <h3 className="text-2xl font-bold text-blue-300 mb-4">Bots Ativos e Métricas</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {botsMetrics.map(bot => (
+                            <div key={bot.id} className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg border border-gray-500">
+                                <h4 className="text-xl font-semibold mb-2 text-white">{bot.name} ({bot.status === 'ativo' ? 'Ativo' : 'Inativo'})</h4>
+                                <div className="grid grid-cols-2 gap-y-2 text-gray-300">
+                                    <p><strong>Faturamento:</strong> <span className="text-green-300">{formatCurrency(bot.revenue)}</span></p>
+                                    <p><strong>Gastos:</strong> <span className="text-red-300">{formatCurrency(bot.spending)}</span></p>
+                                    <p><strong>Lucro:</strong> <span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></p>
+                                    <p><strong>Vendas:</strong> <span className="text-blue-300">{salesData.filter(s => s.botId === bot.id).length}</span></p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             );
         }
 
-        // Outros Componentes (Exemplos simplificados)
-        function Sales() {
+        // --- VENDAS Componente (2 - Novo/Atualizado) ---
+        function SalesPage() {
+            const [startDate, setStartDate] = useState('');
+            const [endDate, setEndDate] = useState('');
+            const [filteredSales, setFilteredSales] = useState([]);
+            const [selectedBot, setSelectedBot] = useState('all'); // 'all' or botId
+
+            useEffect(() => {
+                const today = new Date();
+                const lastMonth = new Date(today);
+                lastMonth.setDate(today.getDate() - 30);
+
+                const defaultEndDate = today.toISOString().slice(0, 10);
+                const defaultStartDate = lastMonth.toISOString().slice(0, 10);
+
+                setStartDate(defaultStartDate);
+                setEndDate(defaultEndDate);
+                applyFilters(defaultStartDate, defaultEndDate, 'all');
+            }, []);
+
+            const applyFilters = (start, end, bot) => {
+                const startObj = new Date(start + 'T00:00:00Z'); // Add time to ensure date comparison works correctly
+                const endObj = new Date(end + 'T23:59:59Z');
+
+                const results = MOCK_SALES_DATA.filter(sale => {
+                    const saleDate = new Date(sale.date);
+                    const isInDateRange = saleDate >= startObj && saleDate <= endObj;
+                    const matchesBot = bot === 'all' || sale.botId === bot;
+                    return isInDateRange && matchesBot;
+                });
+                setFilteredSales(results.sort((a,b) => new Date(b.date) - new Date(a.date))); // Sort by date desc
+            };
+
+            const handleFilterChange = () => {
+                applyFilters(startDate, endDate, selectedBot);
+            };
+
+            const totalPixGenerated = filteredSales.filter(s => s.pixStatus === 'generated').length;
+            const totalPixPaid = filteredSales.filter(s => s.pixStatus === 'paid').length;
+            const totalAmountPaid = filteredSales.filter(s => s.pixStatus === 'paid').reduce((sum, s) => sum + s.amount, 0);
+
             return (
-                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
-                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Vendas</h2>
-                    <p className="text-gray-300 text-center">Detalhes e relatórios de suas vendas.</p>
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Relatório de Vendas</h2>
+
+                    {/* Filters */}
+                    <div className="flex flex-wrap items-center justify-center gap-6 mb-8 p-4 bg-gray-700 rounded-md">
+                        <div className="flex flex-col">
+                            <label htmlFor="salesStartDate" className="text-gray-300 text-sm font-medium mb-1">Data Início:</label>
+                            <input
+                                type="date"
+                                id="salesStartDate"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <label htmlFor="salesEndDate" className="text-gray-300 text-sm font-medium mb-1">Data Fim:</label>
+                            <input
+                                type="date"
+                                id="salesEndDate"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <label htmlFor="botSelect" className="text-gray-300 text-sm font-medium mb-1">Filtrar por Bot:</label>
+                            <select
+                                id="botSelect"
+                                value={selectedBot}
+                                onChange={(e) => setSelectedBot(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            >
+                                <option value="all">Todos os Bots</option>
+                                {MOCK_BOTS_DATA.map(bot => (
+                                    <option key={bot.id} value={bot.id}>{bot.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <button
+                            onClick={handleFilterChange}
+                            className="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2.5 px-6 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center group"
+                        >
+                            <i className="fas fa-filter mr-2 rotate-on-hover"></i>
+                            Aplicar Filtros
+                        </button>
+                    </div>
+
+                    {/* Sales Summary */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center">
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg">
+                            <h3 className="text-xl font-bold mb-2 text-blue-300">PIX Gerados</h3>
+                            <p className="text-white text-3xl font-semibold">{totalPixGenerated}</p>
+                        </div>
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg">
+                            <h3 className="text-xl font-bold mb-2 text-green-300">PIX Pagos</h3>
+                            <p className="text-white text-3xl font-semibold">{totalPixPaid}</p>
+                        </div>
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg">
+                            <h3 className="text-xl font-bold mb-2 text-purple-300">Valor Total Pago</h3>
+                            <p className="text-white text-3xl font-semibold">{formatCurrency(totalAmountPaid)}</p>
+                        </div>
+                    </div>
+
+                    {/* Sales List */}
+                    <h3 className="text-2xl font-bold text-blue-300 mb-4">Detalhes das Vendas ({filteredSales.length} resultados)</h3>
+                    <div className="table-container bg-gray-600 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
+                        {filteredSales.length === 0 ? (
+                            <p className="p-4 text-center text-gray-300">Nenhuma venda encontrada para os filtros selecionados.</p>
+                        ) : (
+                            <table className="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Data</th>
+                                        <th>Produto</th>
+                                        <th>Cliente</th>
+                                        <th>Bot</th>
+                                        <th>Valor</th>
+                                        <th>Status PIX</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredSales.map(sale => (
+                                        <tr key={sale.id}>
+                                            <td className="truncate-text max-w-[80px]">{sale.id}</td>
+                                            <td>{formatDate(sale.date)}</td>
+                                            <td className="truncate-text max-w-[150px]">{sale.product}</td>
+                                            <td className="truncate-text max-w-[150px]">{sale.customer}</td>
+                                            <td>{MOCK_BOTS_DATA.find(b => b.id === sale.botId)?.name || sale.botId}</td>
+                                            <td>{formatCurrency(sale.amount)}</td>
+                                            <td>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${sale.pixStatus === 'paid' ? 'bg-green-500 text-gray-900' : 'bg-orange-500 text-gray-900'}`}>
+                                                    {sale.pixStatus === 'paid' ? 'Pago' : 'Gerado'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
                 </div>
             );
         }
 
-        function Models() {
+        // --- BOTS Componente (3 - Antigo Modelos, agora Bots) ---
+        function BotsPage() {
+            const [bots, setBots] = useState(MOCK_BOTS_DATA);
+            const [newBotName, setNewBotName] = useState('');
+            const [newBotToken, setNewBotToken] = useState('');
+
+            // Recalcula métricas dos bots sempre que houver mudança nos dados simulados
+            const botsWithMetrics = bots.map(bot => {
+                const botSales = MOCK_SALES_DATA.filter(sale => sale.botId === bot.id);
+                const botRevenue = botSales.reduce((sum, sale) => sum + sale.amount, 0);
+
+                // Para gastos do bot, é uma simulação. Em produção, você associaria campanhas a bots.
+                // Aqui, vamos fazer uma atribuição simples para demonstração.
+                const simulatedBotSpending = MOCK_ADSETS_DATA.filter(adset =>
+                    // Simulate linking adsets to bots (e.g., if adset name contains bot name)
+                    adset.name.toLowerCase().includes(bot.name.split(' ')[1].toLowerCase())
+                ).reduce((sum, adset) => sum + adset.spend, 0);
+
+                const botProfit = botRevenue - simulatedBotSpending;
+                return { ...bot, revenue: botRevenue, spending: simulatedBotSpending, profit: botProfit };
+            });
+
+            const handleAddBot = (e) => {
+                e.preventDefault();
+                if (newBotName.trim() === '' || newBotToken.trim() === '') {
+                    alert('Nome e Token do bot são obrigatórios!');
+                    return;
+                }
+                const newBot = {
+                    id: `bot_${Date.now()}`, // Simple unique ID
+                    name: newBotName.trim(),
+                    status: 'ativo', // New bots are active by default
+                    token: newBotToken.trim()
+                };
+                setBots([...bots, newBot]); // Add to local state (not persistent for mock)
+                setNewBotName('');
+                setNewBotToken('');
+                alert('Novo bot adicionado (apenas na sessão atual)!');
+            };
+
             return (
-                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
-                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Modelos</h2>
-                    <p className="text-gray-300 text-center">Gerencie seus modelos de anúncios ou produtos.</p>
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Gestão de Bots</h2>
+
+                    {/* Add New Bot Form */}
+                    <div className="mb-8 p-6 bg-gray-600 dark:bg-gray-700 rounded-md shadow-inner">
+                        <h3 className="text-xl font-bold text-blue-300 mb-4">Adicionar Novo Bot</h3>
+                        <form onSubmit={handleAddBot} className="flex flex-col md:flex-row gap-4">
+                            <input
+                                type="text"
+                                placeholder="Nome do Bot (Ex: Bot Lançamento X)"
+                                value={newBotName}
+                                onChange={(e) => setNewBotName(e.target.value)}
+                                className="flex-grow bg-gray-500 border border-gray-400 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                required
+                            />
+                            <input
+                                type="text"
+                                placeholder="Token do Bot (Ex: 123ABC_bot_token)"
+                                value={newBotToken}
+                                onChange={(e) => setNewBotToken(e.target.value)}
+                                className="flex-grow bg-gray-500 border border-gray-400 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                className="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2 px-6 rounded-md shadow-md transition-all duration-300 transform hover:scale-105"
+                            >
+                                <i className="fas fa-plus mr-2"></i> Adicionar Bot
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Bots List */}
+                    <h3 className="text-2xl font-bold text-blue-300 mb-4">Bots Ativos e Inativos ({bots.length})</h3>
+                    <div className="table-container bg-gray-600 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
+                        <table className="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>ID</th>
+                                    <th>Status</th>
+                                    <th>Faturamento</th>
+                                    <th>Gastos</th>
+                                    <th>Lucro</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {botsWithMetrics.map(bot => (
+                                    <tr key={bot.id}>
+                                        <td className="truncate-text max-w-[180px]">{bot.name}</td>
+                                        <td className="truncate-text max-w-[120px]">{bot.id}</td>
+                                        <td>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${bot.status === 'ativo' ? 'bg-green-500 text-gray-900' : 'bg-red-500 text-white'}`}>
+                                                {bot.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                                            </span>
+                                        </td>
+                                        <td>{formatCurrency(bot.revenue)}</td>
+                                        <td>{formatCurrency(bot.spending)}</td>
+                                        <td><span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             );
         }
 
-        function Achievements() {
+        // --- INTEGRAÇÕES Componente (5 - Atualizado) ---
+        function IntegrationsPage() {
+            const [pixelId, setPixelId] = useState('');
+            const [adsAccountConnected, setAdsAccountConnected] = useState(false); // Simulate connection status
+
+            const handleSavePixel = (e) => {
+                e.preventDefault();
+                alert(`Pixel ID ${pixelId} salvo (apenas UI)! Em um sistema real, isso seria enviado para o backend.`);
+                // Here you would typically send pixelId to your backend
+            };
+
+            const handleConnectAdsAccount = () => {
+                // IMPORTANT: This is a UI placeholder.
+                // Connecting a Meta Ads account securely involves OAuth 2.0 (e.g., Facebook Login for Business)
+                // where the user grants permissions and you receive an access token on your backend.
+                // It CANNOT be done purely in frontend HTML/JS due to security implications and complexity.
+                alert('Iniciando conexão da Conta de Anúncios Meta Ads (simulação). Isso exigiria um fluxo OAuth completo com um backend.');
+                setAdsAccountConnected(true); // Simulate success for UI
+            };
+
             return (
-                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
-                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Conquistas</h2>
-                    <p className="text-gray-300 text-center">Veja suas metas e conquistas alcançadas.</p>
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Integrações de Marketing</h2>
+
+                    {/* Meta Pixel Setup */}
+                    <div className="mb-8 p-6 bg-gray-600 dark:bg-gray-700 rounded-md shadow-inner">
+                        <h3 className="text-xl font-bold text-blue-300 mb-4 flex items-center"><i className="fab fa-facebook-f mr-3 text-2xl"></i> Configuração do Pixel Meta</h3>
+                        <form onSubmit={handleSavePixel} className="flex flex-col md:flex-row gap-4 items-end">
+                            <div className="flex-grow flex flex-col">
+                                <label htmlFor="pixelId" className="text-gray-300 text-sm font-medium mb-1">ID do Pixel Meta:</label>
+                                <input
+                                    type="text"
+                                    id="pixelId"
+                                    placeholder="Ex: 1234567890"
+                                    value={pixelId}
+                                    onChange={(e) => setPixelId(e.target.value)}
+                                    className="bg-gray-500 border border-gray-400 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2 px-6 rounded-md shadow-md transition-all duration-300 transform hover:scale-105"
+                            >
+                                <i className="fas fa-save mr-2"></i> Salvar Pixel
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Meta Ads Account Consent */}
+                    <div className="p-6 bg-gray-600 dark:bg-gray-700 rounded-md shadow-inner">
+                        <h3 className="text-xl font-bold text-blue-300 mb-4 flex items-center"><i className="fab fa-facebook-square mr-3 text-2xl"></i> Conectar Conta de Anúncios Meta</h3>
+                        <p className="text-gray-300 mb-4">
+                            Para puxar as métricas de suas campanhas e anúncios, precisamos da sua permissão para acessar sua conta de anúncios Meta.
+                            **Atenção: A conexão real envolve um fluxo de autenticação seguro (OAuth) entre o seu servidor e a Meta. Este é apenas um placeholder de UI.**
+                        </p>
+                        {adsAccountConnected ? (
+                            <div className="flex items-center text-green-400 text-lg font-semibold">
+                                <i className="fas fa-check-circle mr-3"></i> Conta de Anúncios Conectada!
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleConnectAdsAccount}
+                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow-md transition-all duration-300 transform hover:scale-105"
+                            >
+                                <i className="fas fa-link mr-2"></i> Conectar Conta Meta Ads
+                            </button>
+                        )}
+                    </div>
                 </div>
             );
         }
 
-        function Integrations() {
-            return (
-                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
-                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Integrações</h2>
-                    <p className="text-gray-300 text-center">Conecte-se com outras ferramentas.</p>
-                </div>
-            );
-        }
-
+        // --- CRIAR CHECKOUT (6 - Mantido) ---
         function CreateCheckout() {
             return (
-                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
                     <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Criar Checkout</h2>
-                    <p className="text-gray-300 text-center">Crie novos checkouts para seus produtos.</p>
+                    <p className="text-gray-300 text-center">Aqui você poderá configurar e criar novos checkouts para seus produtos.</p>
+                    <p className="text-gray-400 text-center mt-4">Funcionalidade a ser desenvolvida.</p>
                 </div>
             );
         }
 
-        // === NOVO COMPONENTE: CampaignsPage ===
+        // --- CAMPANHAS Componente (7 - Atualizado com Tabs) ---
         function CampaignsPage() {
             const [campaigns, setCampaigns] = useState([]);
+            const [adsets, setAdsets] = useState([]);
+            const [ads, setAds] = useState([]);
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState(null);
             const [accountId, setAccountId] = useState("507111372463621"); // Default to Conta 1
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
+            const [activeTab, setActiveTab] = useState('campaigns'); // 'campaigns', 'adsets', 'ads'
 
             // **ATENÇÃO: MANTER ESTE TOKEN NO CLIENTE NÃO É SEGURO PARA PRODUÇÃO.**
-            // Considere um backend para gerenciar o token e as chamadas à API.
             const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
 
             const contas = [
@@ -184,26 +679,13 @@
                 { id: "735462832220538", name: "Conta 5" },
             ];
 
-            // Funções de formatação
-            const formatCurrency = useCallback((value) => {
-                const num = Number(value);
-                if (isNaN(num)) return "R$ 0,00";
-                return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-            }, []);
-
-            const formatDate = useCallback((dateStr) => {
-                if (!dateStr) return "-";
-                const d = new Date(dateStr);
-                return d.toLocaleDateString("pt-BR");
-            }, []);
-
             const renderStatus = useCallback((status) => {
                 if (!status) return null;
                 status = status.toLowerCase();
                 let colorClass = '';
                 if (status.includes("active")) colorClass = 'bg-green-500 text-gray-900';
                 else if (status.includes("paused")) colorClass = 'bg-orange-500 text-gray-900';
-                else if (status.includes("inactive") || status.includes("archived") || status.includes("completed")) colorClass = 'bg-red-500 text-white';
+                else if (status.includes("inactive") || status.includes("archived") || status.includes("completed") || status.includes("deleted")) colorClass = 'bg-red-500 text-white';
                 return (
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
                         {status.replace(/_/g, ' ')}
@@ -214,14 +696,9 @@
             const renderActions = useCallback((actions) => {
                 if (!actions || !actions.length) return <p className="text-gray-400 text-sm italic">Sem ações registradas</p>;
                 const labels = {
-                    "link_click": "Cliques em Links",
-                    "post_engagement": "Engajamento em Post",
-                    "page_engagement": "Engajamento na Página",
-                    "lead": "Leads",
-                    "purchase": "Compras",
-                    "view_content": "Visualizações",
-                    "add_to_cart": "Adicionados ao Carrinho",
-                    "initiate_checkout": "Inícios de Checkout"
+                    "link_click": "Cliques em Links", "post_engagement": "Engajamento Post", "page_engagement": "Engajamento Página",
+                    "lead": "Leads", "purchase": "Compras", "view_content": "Visualizações", "add_to_cart": "Add Carrinho",
+                    "initiate_checkout": "Início Checkout"
                 };
                 return (
                     <div className="mt-3 pt-3 border-t border-gray-700">
@@ -236,17 +713,18 @@
                 );
             }, []);
 
-            // Função de busca da API
-            const fetchCampaigns = useCallback(async (accountId, since, until) => {
+
+            const fetchCampaignsData = useCallback(async (currentAccountId, since, until) => {
                 setLoading(true);
                 setError(null);
                 try {
-                    const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
+                    // Fetch Campaigns and their insights
+                    const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${currentAccountId}/campaigns`);
                     urlCampaigns.searchParams.set("fields", "id,name,status,effective_status,start_time,stop_time");
                     urlCampaigns.searchParams.set("limit", "200");
                     urlCampaigns.searchParams.set("access_token", TOKEN);
 
-                    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
+                    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${currentAccountId}/insights`);
                     urlInsights.searchParams.set("level", "campaign");
                     urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
                     urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
@@ -261,57 +739,114 @@
                     const campData = await campRes.json();
                     const insightsData = await insightsRes.json();
 
-                    if (campData.error) throw new Error(`API de Campanhas: ${campData.error.message}`);
-                    if (insightsData.error) throw new Error(`API de Insights: ${insightsData.error.message}`);
+                    if (campData.error) throw new Error(`API Campanhas: ${campData.error.message}`);
+                    if (insightsData.error) throw new Error(`API Insights: ${insightsData.error.message}`);
 
                     const insightsMap = {};
                     (insightsData.data || []).forEach(i => {
                         insightsMap[i.campaign_id] = i;
                     });
 
-                    const combinedData = (campData.data || []).map(camp => ({
+                    const combinedCampaigns = (campData.data || []).map(camp => ({
                         ...camp,
                         insights: insightsMap[camp.id] || {}
                     }));
+                    setCampaigns(combinedCampaigns);
 
-                    setCampaigns(combinedData);
+                    // --- SIMULAÇÃO: Fetch Ad Sets e Ads ---
+                    // Em um ambiente real, você faria chamadas API similares para adsets e ads,
+                    // mas a API do Meta Ads tem limites e a estrutura das chamadas é mais complexa.
+                    // Estou usando dados mockados para 'adsets' e 'ads' por simplificação aqui.
+                    const simulatedAdsets = MOCK_ADSETS_DATA.map(adset => ({
+                        ...adset,
+                        insights: MOCK_ADSETS_DATA.find(i => i.id === adset.id) || {} // Simplified insight mapping
+                    })).filter(adset =>
+                        combinedCampaigns.some(camp => camp.id === adset.campaign_id) // Filter adsets for fetched campaigns
+                    );
+                    setAdsets(simulatedAdsets);
+
+                    const simulatedAds = MOCK_ADS_DATA.map(ad => ({
+                        ...ad,
+                        insights: MOCK_ADS_DATA.find(i => i.id === ad.id) || {} // Simplified insight mapping
+                    })).filter(ad =>
+                        simulatedAdsets.some(adset => adset.id === ad.adset_id) // Filter ads for fetched adsets
+                    );
+                    setAds(simulatedAds);
+
                 } catch (err) {
                     setError(err.message);
-                    console.error("Erro ao carregar campanhas:", err);
+                    console.error("Erro ao carregar dados de campanhas/adsets/ads:", err);
                 } finally {
                     setLoading(false);
                 }
-            }, [TOKEN]); // TOKEN é uma dependência do useCallback
+            }, [TOKEN]);
 
-            // Efeito para carregar dados quando os filtros mudam ou no primeiro carregamento
             useEffect(() => {
                 const today = new Date();
                 const lastWeek = new Date(today);
                 lastWeek.setDate(today.getDate() - 7);
 
-                // Formata para 'YYYY-MM-DD'
                 const defaultEndDate = today.toISOString().slice(0, 10);
                 const defaultStartDate = lastWeek.toISOString().slice(0, 10);
 
                 setStartDate(defaultStartDate);
                 setEndDate(defaultEndDate);
-
-                fetchCampaigns(accountId, defaultStartDate, defaultEndDate);
-            }, [accountId, fetchCampaigns]); // Recarrega se a conta ou a função de fetch mudar
+                fetchCampaignsData(accountId, defaultStartDate, defaultEndDate);
+            }, [accountId, fetchCampaignsData]);
 
             const handleRefresh = () => {
                 if (!accountId || !startDate || !endDate) {
                     alert("Por favor, selecione a conta e as datas.");
                     return;
                 }
-                fetchCampaigns(accountId, startDate, endDate);
+                fetchCampaignsData(accountId, startDate, endDate);
+            };
+
+            const renderDataCards = (data, type) => {
+                if (data.length === 0) {
+                    return <p className="text-center text-gray-400 py-8">Nenhum {type} encontrado(a) para o período e conta selecionados.</p>;
+                }
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {data.map(item => (
+                            <div key={item.id} className="bg-gray-700 rounded-lg shadow-md p-5 border border-gray-600 transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+                                <h3 className="text-xl font-semibold text-blue-300 mb-2 truncate-text">{item.name || item.id}</h3>
+                                {item.status && <div className="mb-3 flex flex-wrap gap-2">{renderStatus(item.status)} {item.effective_status && item.status !== item.effective_status && renderStatus(item.effective_status)}</div>}
+                                <p className="text-sm text-gray-300 mb-1"><strong>ID:</strong> <span className="text-gray-200">{item.id}</span></p>
+                                {item.start_time && <p className="text-sm text-gray-300 mb-1"><strong>Início:</strong> <span className="text-gray-200">{formatDate(item.start_time)}</span></p>}
+                                {item.stop_time && <p className="text-sm text-gray-300 mb-3"><strong>Fim:</strong> <span className="text-gray-200">{item.stop_time ? formatDate(item.stop_time) : 'Em aberto'}</span></p>}
+                                {item.objective && <p className="text-sm text-gray-300 mb-1"><strong>Objetivo:</strong> <span className="text-gray-200">{item.objective.replace(/_/g, ' ')}</span></p>}
+                                {item.preview_url && (
+                                    <div className="mb-3">
+                                        <p className="text-sm text-gray-300 mb-1"><strong>Prévia:</strong></p>
+                                        <img src={item.preview_url} alt="Creative Preview" className="w-full h-auto max-h-48 object-cover rounded-md mt-2" />
+                                        <a href={item.preview_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-sm hover:underline mt-1 block">Ver Imagem/Vídeo</a>
+                                    </div>
+                                )}
+
+
+                                <div className="mt-4 pt-4 border-t border-gray-600">
+                                    <h4 className="font-bold text-lg text-green-400 mb-2">Métricas ({formatDate(startDate)} - {formatDate(endDate)})</h4>
+                                    <p className="text-gray-300 text-base mb-1"><strong>Gastos:</strong> <span className="text-red-300 font-semibold">{formatCurrency(item.insights.spend || 0)}</span></p>
+                                    <p className="text-gray-300 text-base mb-1"><strong>Cliques:</strong> <span className="text-blue-300 font-semibold">{item.insights.clicks || 0}</span></p>
+                                    <p className="text-gray-300 text-base mb-1"><strong>Impressões:</strong> <span className="text-purple-300 font-semibold">{item.insights.impressions || 0}</span></p>
+                                    <p className="text-gray-300 text-base mb-1"><strong>CTR:</strong> <span className="text-orange-300 font-semibold">{(parseFloat(item.insights.ctr || 0)).toFixed(2)}%</span></p>
+                                    <p className="text-gray-300 text-base mb-1"><strong>CPC:</strong> <span className="text-cyan-300 font-semibold">{formatCurrency(item.insights.cpc || 0)}</span></p>
+                                    <p className="text-gray-300 text-base mb-1"><strong>CPM:</strong> <span className="text-pink-300 font-semibold">{formatCurrency(item.insights.cpm || 0)}</span></p>
+                                    {renderActions(item.insights.actions)}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
             };
 
             return (
-                <div className="p-6 bg-gray-800 rounded-lg shadow-xl mb-8 text-gray-100">
-                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Visão Geral de Campanhas</h2>
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Gestão de Campanhas Meta Ads</h2>
 
-                    {/* Filtros */}
+                    {/* Filters and Account Selection */}
                     <div className="flex flex-wrap items-center justify-center gap-6 mb-8 p-4 bg-gray-700 rounded-md">
                         <div className="flex flex-col">
                             <label htmlFor="accountSelect" className="text-gray-300 text-sm font-medium mb-1">Conta de Anúncio:</label>
@@ -321,12 +856,13 @@
                                 onChange={(e) => setAccountId(e.target.value)}
                                 className="bg-gray-600 border border-gray-500 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
                             >
-                                {contas.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} ({c.id})</option>
+                                {contas.map(conta => (
+                                    <option key={conta.id} value={conta.id}>
+                                        {conta.name} (ID: {conta.id})
+                                    </option>
                                 ))}
                             </select>
                         </div>
-
                         <div className="flex flex-col">
                             <label htmlFor="startDate" className="text-gray-300 text-sm font-medium mb-1">Data Início:</label>
                             <input
@@ -337,7 +873,6 @@
                                 className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
                             />
                         </div>
-
                         <div className="flex flex-col">
                             <label htmlFor="endDate" className="text-gray-300 text-sm font-medium mb-1">Data Fim:</label>
                             <input
@@ -348,84 +883,85 @@
                                 className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
                             />
                         </div>
-
                         <button
                             onClick={handleRefresh}
                             className="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2.5 px-6 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center group"
-                            disabled={loading}
                         >
-                            <i className={`fas fa-sync-alt mr-2 ${loading ? 'animate-spin' : 'rotate-on-hover'}`}></i>
-                            {loading ? 'Carregando...' : 'Atualizar'}
+                            <i className="fas fa-sync-alt mr-2 rotate-on-hover"></i>
+                            Atualizar Dados
                         </button>
                     </div>
 
-                    {/* Área de exibição das campanhas */}
+                    {/* Tabs for Campaigns, Ad Sets, Ads */}
+                    <div className="flex justify-center mb-8 bg-gray-700 p-2 rounded-lg shadow-inner">
+                        <button
+                            onClick={() => setActiveTab('campaigns')}
+                            className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-300 ${activeTab === 'campaigns' ? 'bg-green-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-600 hover:text-white'}`}
+                        >
+                            <i className="fas fa-bullhorn mr-2"></i> Campanhas
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('adsets')}
+                            className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-300 ${activeTab === 'adsets' ? 'bg-green-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-600 hover:text-white'}`}
+                        >
+                            <i className="fas fa-layer-group mr-2"></i> Conjuntos de Anúncios
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('ads')}
+                            className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-300 ${activeTab === 'ads' ? 'bg-green-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-600 hover:text-white'}`}
+                        >
+                            <i className="fas fa-ad mr-2"></i> Criativos
+                        </button>
+                    </div>
+
+                    {loading && (
+                        <div className="text-center py-10">
+                            <i className="fas fa-spinner fa-spin text-green-400 text-4xl mb-4"></i>
+                            <p className="text-gray-300 text-lg">Carregando dados da Meta Ads...</p>
+                        </div>
+                    )}
                     {error && (
-                        <div className="bg-red-900 border border-red-700 text-red-200 p-4 rounded-md mb-6 flex items-center">
-                            <i className="fas fa-exclamation-triangle mr-3 text-xl"></i>
-                            <p>Erro ao carregar dados: {error}. Por favor, verifique seu TOKEN de acesso ou as permissões da conta.</p>
+                        <div className="bg-red-800 text-red-100 p-4 rounded-md text-center">
+                            <i className="fas fa-exclamation-triangle mr-2"></i>
+                            <p>Erro ao carregar dados: {error}</p>
+                            <p className="text-sm mt-2">Verifique seu token de acesso, permissões ou a conexão de internet.</p>
                         </div>
                     )}
 
-                    {loading && !error && (
-                        <div className="text-center text-green-400 py-8">
-                            <i className="fas fa-spinner fa-spin text-5xl mb-4"></i>
-                            <p className="text-lg">Carregando campanhas...</p>
-                        </div>
-                    )}
-
-                    {!loading && !error && campaigns.length === 0 && (
-                        <div className="text-center text-gray-400 py-8">
-                            <p className="text-lg">Nenhuma campanha encontrada para o período e conta selecionados.</p>
-                        </div>
-                    )}
-
-                    {!loading && !error && campaigns.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {campaigns.map(c => (
-                                <div key={c.id} className="bg-gray-700 rounded-lg shadow-md p-5 border border-gray-600 transition-transform duration-300 hover:scale-105 hover:shadow-xl">
-                                    <h3 className="text-xl font-semibold text-blue-300 mb-2 truncate-text">{c.name}</h3>
-                                    <div className="mb-3 flex flex-wrap gap-2">
-                                        {renderStatus(c.status)}
-                                        {c.status !== c.effective_status && renderStatus(c.effective_status)}
-                                    </div>
-                                    <p className="text-sm text-gray-300 mb-1"><strong>ID:</strong> <span className="text-gray-200">{c.id}</span></p>
-                                    <p className="text-sm text-gray-300 mb-1"><strong>Início:</strong> <span className="text-gray-200">{formatDate(c.start_time)}</span></p>
-                                    <p className="text-sm text-gray-300 mb-3"><strong>Fim:</strong> <span className="text-gray-200">{formatDate(c.stop_time)}</span></p>
-                                    
-                                    <div className="bg-gray-800 p-3 rounded-md mb-3">
-                                        <p className="text-sm text-gray-300"><strong>Impressões:</strong> <span className="text-green-300 font-semibold">{c.insights.impressions || 0}</span></p>
-                                        <p className="text-sm text-gray-300"><strong>Cliques:</strong> <span className="text-green-300 font-semibold">{c.insights.clicks || 0}</span></p>
-                                        <p className="text-sm text-gray-300"><strong>Gasto:</strong> <span className="text-purple-300 font-bold">{formatCurrency(c.insights.spend || 0)}</span></p>
-                                        {c.insights.ctr && <p className="text-sm text-gray-300"><strong>CTR:</strong> <span className="text-yellow-300 font-semibold">{parseFloat(c.insights.ctr).toFixed(2)}%</span></p>}
-                                        {c.insights.cpc && <p className="text-sm text-gray-300"><strong>CPC:</strong> <span className="text-yellow-300 font-semibold">{formatCurrency(c.insights.cpc)}</span></p>}
-                                        {c.insights.cpm && <p className="text-sm text-gray-300"><strong>CPM:</strong> <span className="text-yellow-300 font-semibold">{formatCurrency(c.insights.cpm)}</span></p>}
-                                    </div>
-                                    {renderActions(c.insights.actions)}
-                                </div>
-                            ))}
+                    {!loading && !error && (
+                        <div>
+                            {activeTab === 'campaigns' && renderDataCards(campaigns, 'Campanha')}
+                            {activeTab === 'adsets' && renderDataCards(adsets, 'Conjunto de Anúncios')}
+                            {activeTab === 'ads' && renderDataCards(ads, 'Criativo')}
                         </div>
                     )}
                 </div>
             );
         }
-        // === Fim do Componente: CampaignsPage ===
 
-        // Componente principal do aplicativo React
+        // --- Componente Principal da Aplicação ---
         function App() {
-            const [currentPage, setCurrentPage] = useState('dashboard'); // Define a página inicial
-            const [isDarkMode, setIsDarkMode] = useState(() => {
-                const savedTheme = localStorage.getItem('theme');
-                return savedTheme === 'dark';
-            });
+            const [currentPage, setCurrentPage] = useState('dashboard'); // Página inicial padrão
+            const [isDarkMode, setIsDarkMode] = useState(false);
 
-            // Efeito para aplicar/remover a classe 'dark' do <html> e salvar no localStorage
             useEffect(() => {
+                // Carrega a preferência de tema do localStorage
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    setIsDarkMode(true);
+                } else {
+                    setIsDarkMode(false);
+                }
+            }, []);
+
+            useEffect(() => {
+                // Aplica a classe 'dark' ao <html> baseado no estado
                 if (isDarkMode) {
                     document.documentElement.classList.add('dark');
                 } else {
                     document.documentElement.classList.remove('dark');
                 }
+                // Salva a preferência no localStorage
                 localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
             }, [isDarkMode]);
 
@@ -442,13 +978,12 @@
                     <Header onNavigate={navigateTo} currentPage={currentPage} toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />
                     <main className="container mx-auto p-4">
                         {currentPage === 'dashboard' && <Dashboard />}
-                        {currentPage === 'sales' && <Sales />}
-                        {currentPage === 'models' && <Models />}
-                        {currentPage === 'achievements' && <Achievements />}
-                        {currentPage === 'integrations' && <Integrations />}
+                        {currentPage === 'sales' && <SalesPage />} {/* Updated */}
+                        {currentPage === 'bots' && <BotsPage />} {/* Updated: Renamed from Models */}
+                        {/* achievements removed */}
+                        {currentPage === 'integrations' && <IntegrationsPage />} {/* Updated */}
                         {currentPage === 'create-checkout' && <CreateCheckout />}
-                        {/* === Adiciona a renderização condicional do CampaignsPage === */}
-                        {currentPage === 'campaigns' && <CampaignsPage />}
+                        {currentPage === 'campaigns' && <CampaignsPage />} {/* Updated */}
                     </main>
                 </div>
             );
