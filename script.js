@@ -16,7 +16,7 @@ window.onload = () => {
   const tabs = document.querySelectorAll(".tab-button");
   const tabContents = document.querySelectorAll(".tab-content");
 
-  // Preenche o select de contas
+  // Preenche select com contas
   accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join("");
   console.log("Contas carregadas no select");
 
@@ -27,6 +27,7 @@ window.onload = () => {
   startDateInput.value = semanaPassada.toISOString().slice(0, 10);
   endDateInput.value = hoje.toISOString().slice(0, 10);
 
+  // Troca abas
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
       tabs.forEach(t => t.classList.remove("active"));
@@ -38,9 +39,11 @@ window.onload = () => {
     });
   });
 
+  // --- Funções de busca na API ---
+
   async function fetchCampaigns(accountId, since, until) {
     const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
-    urlCampaigns.searchParams.set("fields", "name,status,effective_status,start_time,stop_time");
+    urlCampaigns.searchParams.set("fields", "id,name,status,effective_status,start_time,stop_time");
     urlCampaigns.searchParams.set("limit", "200");
     urlCampaigns.searchParams.set("access_token", TOKEN);
 
@@ -75,7 +78,7 @@ window.onload = () => {
 
   async function fetchAdSets(accountId, since, until) {
     const urlAdsets = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/adsets`);
-    urlAdsets.searchParams.set("fields", "name,status,daily_budget,start_time,end_time");
+    urlAdsets.searchParams.set("fields", "id,name,status,daily_budget,start_time,end_time");
     urlAdsets.searchParams.set("limit", "200");
     urlAdsets.searchParams.set("access_token", TOKEN);
 
@@ -110,7 +113,7 @@ window.onload = () => {
 
   async function fetchAds(accountId, since, until) {
     const urlAds = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/ads`);
-    urlAds.searchParams.set("fields", "name,status,creative");
+    urlAds.searchParams.set("fields", "id,name,status,creative");
     urlAds.searchParams.set("limit", "200");
     urlAds.searchParams.set("access_token", TOKEN);
 
@@ -143,8 +146,12 @@ window.onload = () => {
     }));
   }
 
+  // --- Helpers de formatação ---
+
   function formatCurrency(value) {
-    return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const num = Number(value);
+    if (isNaN(num)) return "R$ 0,00";
+    return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
   function formatDate(dateStr) {
     if (!dateStr) return "-";
@@ -176,6 +183,8 @@ window.onload = () => {
     return actions.map(a => `<p>• ${labels[a.action_type] || a.action_type}: ${a.value}</p>`).join("");
   }
 
+  // --- Renderização das abas ---
+
   function renderCampaigns(campaigns) {
     const container = document.getElementById("campanhas");
     container.innerHTML = "";
@@ -186,7 +195,7 @@ window.onload = () => {
     }
 
     campaigns.forEach(c => {
-      const ins = c.insights;
+      const ins = c.insights || {};
       container.innerHTML += `
         <div class="card">
           <h3>${c.name}</h3>
@@ -212,7 +221,7 @@ window.onload = () => {
     }
 
     adsets.forEach(a => {
-      const ins = a.insights;
+      const ins = a.insights || {};
       container.innerHTML += `
         <div class="card">
           <h3>${a.name}</h3>
@@ -239,7 +248,14 @@ window.onload = () => {
     }
 
     ads.forEach(a => {
-      const ins = a.insights;
+      const ins = a.insights || {};
+      const ctr = parseFloat(ins.ctr);
+      const ctrFormatada = !isNaN(ctr) ? ctr.toFixed(2) : "0.00";
+      const cpc = parseFloat(ins.cpc);
+      const cpcFormatado = !isNaN(cpc) ? formatCurrency(cpc) : formatCurrency(0);
+      const cpm = parseFloat(ins.cpm);
+      const cpmFormatado = !isNaN(cpm) ? formatCurrency(cpm) : formatCurrency(0);
+
       container.innerHTML += `
         <div class="card">
           <h3>${a.name}</h3>
@@ -247,14 +263,16 @@ window.onload = () => {
           <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
           <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
           <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-          <p><strong>CTR:</strong> ${(ins.ctr || 0).toFixed(2)}%</p>
-          <p><strong>CPC:</strong> ${formatCurrency(ins.cpc || 0)}</p>
-          <p><strong>CPM:</strong> ${formatCurrency(ins.cpm || 0)}</p>
+          <p><strong>CTR:</strong> ${ctrFormatada}%</p>
+          <p><strong>CPC:</strong> ${cpcFormatado}</p>
+          <p><strong>CPM:</strong> ${cpmFormatado}</p>
           <div>${renderActions(ins.actions)}</div>
         </div>
       `;
     });
   }
+
+  // --- Carrega tudo quando chamado ---
 
   async function carregarTudo() {
     const accountId = accountSelect.value;
@@ -285,8 +303,10 @@ window.onload = () => {
     }
   }
 
+  // Eventos
   accountSelect.addEventListener("change", carregarTudo);
   btnRefresh.addEventListener("click", carregarTudo);
 
+  // Carregamento inicial
   carregarTudo();
 };
