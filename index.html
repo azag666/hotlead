@@ -25,7 +25,7 @@
 
             <div class="control-group">
                 <label>Agrupamento:</label>
-                <!-- Botões de agrupamento com indicação do nível de detalhe -->
+                <!-- Botões de agrupamento: diário e horário serão por campanha individual, total por período será agregado -->
                 <button class="increment-button active" data-time-increment="daily">Por Dia</button>
                 <button class="increment-button" data-time-increment="hourly">Por Hora</button>
                 <button class="increment-button" data-time-increment="all_days">Total do Período</button>
@@ -38,16 +38,24 @@
                 <p id="totalSpend" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>ROAS</h3>
-                <p id="totalRoas" class="metric-value">Carregando...</p>
+                <h3>Cliques Total</h3>
+                <p id="totalClicks" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>Compras</h3>
+                <h3>CPC Médio</h3>
+                <p id="averageCpc" class="metric-value">Carregando...</p>
+            </div>
+            <div class="metric-card">
+                <h3>Compras Total</h3>
                 <p id="totalPurchases" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>Valor Conversão</h3>
+                <h3>Valor Conversão Total</h3>
                 <p id="totalConversionValue" class="metric-value">Carregando...</p>
+            </div>
+            <div class="metric-card">
+                <h3>ROAS Médio</h3>
+                <p id="averageRoas" class="metric-value">Carregando...</p>
             </div>
         </div>
 
