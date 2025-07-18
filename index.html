@@ -3,35 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard de Campanhas Meta Ads</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Visualizador de Campanhas Meta</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <header>
-    <h1>📊 Meta Ads Trackeador</h1>
-    <p>Veja suas campanhas com performance e status detalhados</p>
-  </header>
-
-  <section class="filtros">
-    <label for="adAccount">Conta de Anúncio:</label>
-    <select id="adAccount">
-      <option value="1073555467565665">Conta 1</option>
-      <option value="1421566932486575">Conta 2</option>
-      <option value="507111372463621">Conta 3</option>
-      <option value="735462832220538">Conta 4</option>
-      <option value="1767547067979139">Conta 5</option>
-    </select>
-
-    <label for="startDate">Data Inicial:</label>
-    <input type="date" id="startDate" />
-
-    <label for="endDate">Data Final:</label>
-    <input type="date" id="endDate" />
-
-    <button onclick="buscarCampanhas()">🔍 Buscar Campanhas</button>
-  </section>
-
-  <main id="resultados"></main>
+  <h1>📊 Tracker de Campanhas Meta</h1>
+  <div id="loading">Carregando dados...</div>
+  <div id="data-container"></div>
 
   <script src="script.js"></script>
 </body>
