@@ -1,18 +1,3 @@
-Aqui está a versão atualizada do `index (1).html` que implementa a funcionalidade de "clicar na campanha" para visualizar os conjuntos de anúncios e criativos relacionados.
-
-**Principais Mudanças:**
-
-1.  **Seleção de Campanha:** Na `CampaignsPage`, agora é possível clicar em um cartão de campanha para selecioná-lo. Quando uma campanha é selecionada, ela fica visualmente destacada e o estado `selectedCampaignId` é atualizado.
-2.  **Filtro por Campanha nos Conjuntos de Anúncios e Criativos:**
-      * As abas "Conjuntos de Anúncios" e "Criativos" agora exibem apenas os itens que pertencem à campanha selecionada.
-      * Se nenhuma campanha estiver selecionada (ou seja, `selectedCampaignId` for nulo), as abas mostram todos os conjuntos de anúncios e criativos disponíveis, como antes.
-3.  **Botão "Voltar para Campanhas":** Adicionei um botão "Voltar para Campanhas" quando uma campanha está selecionada. Clicar nele desmarca a campanha selecionada e retorna à visualização de todas as campanhas.
-4.  **UI de Seleção:** A campanha selecionada agora tem um destaque visual para indicar que está ativa.
-5.  **Refinamento do `renderDataCards`:** A função `renderDataCards` foi ajustada para aceitar um parâmetro de `campaignId` e filtrar os dados dos conjuntos de anúncios e criativos.
-
-Com esta atualização, você terá uma experiência de navegação mais interativa na seção de campanhas.
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full">
 <head>
@@ -136,17 +121,13 @@ Com esta atualização, você terá uma experiência de navegação mais interat
             { id: 'adset_1', name: 'Conjunto de Anúncios Verão 2025', status: 'ACTIVE', campaign_id: '1', objective: 'LEAD_GENERATION', spend: 350.50, impressions: 50000, clicks: 1200 },
             { id: 'adset_2', name: 'Conjunto de Anúncios Inverno 2025', status: 'PAUSED', campaign_id: '1', objective: 'PURCHASE', spend: 120.00, impressions: 15000, clicks: 300 },
             { id: 'adset_3', name: 'Conjunto de Anúncios Oferta Relâmpago', status: 'ACTIVE', campaign_id: '2', objective: 'CONVERSION', spend: 800.00, impressions: 80000, clicks: 2500 },
-            { id: 'adset_4', name: 'Conjunto de Anúncios Produto Novo', status: 'ACTIVE', campaign_id: '3', objective: 'REACH', spend: 150.00, impressions: 100000, clicks: 500 },
-            { id: 'adset_5', name: 'Conjunto de Anúncios Retargeting', status: 'ACTIVE', campaign_id: '1', objective: 'CONVERSION', spend: 250.00, impressions: 30000, clicks: 700 },
         ];
 
         const MOCK_ADS_DATA = [
-            { id: 'ad_1', name: 'Criativo Carrossel Produto A', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://via.placeholder.com/150/FF5733/FFFFFF?text=Ad1', spend: 200.00, impressions: 25000, clicks: 500 },
-            { id: 'ad_2', name: 'Criativo Vídeo Depoimento B', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://via.placeholder.com/150/33FF57/FFFFFF?text=Ad2', spend: 150.50, impressions: 25000, clicks: 700 },
-            { id: 'ad_3', name: 'Criativo Imagem Única Desconto', status: 'ACTIVE', adset_id: 'adset_3', preview_url: 'https://via.placeholder.com/150/3357FF/FFFFFF?text=Ad3', spend: 400.00, impressions: 40000, clicks: 1200 },
-            { id: 'ad_4', name: 'Criativo Story CTA', status: 'PAUSED', adset_id: 'adset_3', preview_url: 'https://via.placeholder.com/150/FFFF33/000000?text=Ad4', spend: 400.00, impressions: 40000, clicks: 1300 },
-            { id: 'ad_5', name: 'Criativo Banner Lateral', status: 'ACTIVE', adset_id: 'adset_4', preview_url: 'https://via.placeholder.com/150/FF33FF/FFFFFF?text=Ad5', spend: 100.00, impressions: 60000, clicks: 300 },
-            { id: 'ad_6', name: 'Criativo Retargeting Dinâmico', status: 'ACTIVE', adset_id: 'adset_5', preview_url: 'https://via.placeholder.com/150/33FFFF/000000?text=Ad6', spend: 150.00, impressions: 20000, clicks: 400 },
+            { id: 'ad_1', name: 'Criativo Carrossel Produto A', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://example.com/ad1.jpg', spend: 200.00, impressions: 25000, clicks: 500 },
+            { id: 'ad_2', name: 'Criativo Vídeo Depoimento B', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://example.com/ad2.mp4', spend: 150.50, impressions: 25000, clicks: 700 },
+            { id: 'ad_3', name: 'Criativo Imagem Única Desconto', status: 'ACTIVE', adset_id: 'adset_3', preview_url: 'https://example.com/ad3.png', spend: 400.00, impressions: 40000, clicks: 1200 },
+            { id: 'ad_4', name: 'Criativo Story CTA', status: 'PAUSED', adset_id: 'adset_3', preview_url: 'https://example.com/ad4.gif', spend: 400.00, impressions: 40000, clicks: 1300 },
         ];
 
 
@@ -675,7 +656,7 @@ Com esta atualização, você terá uma experiência de navegação mais interat
             );
         }
 
-        // --- CAMPANHAS Componente (7 - Atualizado com Tabs e Drill-down) ---
+        // --- CAMPANHAS Componente (7 - Atualizado com Tabs) ---
         function CampaignsPage() {
             const [campaigns, setCampaigns] = useState([]);
             const [adsets, setAdsets] = useState([]);
@@ -686,7 +667,6 @@ Com esta atualização, você terá uma experiência de navegação mais interat
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
             const [activeTab, setActiveTab] = useState('campaigns'); // 'campaigns', 'adsets', 'ads'
-            const [selectedCampaignId, setSelectedCampaignId] = useState(null); // New state for selected campaign
 
             // **ATENÇÃO: MANTER ESTE TOKEN NO CLIENTE NÃO É SEGURO PARA PRODUÇÃO.**
             const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
@@ -780,13 +760,17 @@ Com esta atualização, você terá uma experiência de navegação mais interat
                     const simulatedAdsets = MOCK_ADSETS_DATA.map(adset => ({
                         ...adset,
                         insights: MOCK_ADSETS_DATA.find(i => i.id === adset.id) || {} // Simplified insight mapping
-                    }));
+                    })).filter(adset =>
+                        combinedCampaigns.some(camp => camp.id === adset.campaign_id) // Filter adsets for fetched campaigns
+                    );
                     setAdsets(simulatedAdsets);
 
                     const simulatedAds = MOCK_ADS_DATA.map(ad => ({
                         ...ad,
                         insights: MOCK_ADS_DATA.find(i => i.id === ad.id) || {} // Simplified insight mapping
-                    }));
+                    })).filter(ad =>
+                        simulatedAdsets.some(adset => adset.id === ad.adset_id) // Filter ads for fetched adsets
+                    );
                     setAds(simulatedAds);
 
                 } catch (err) {
@@ -816,64 +800,23 @@ Com esta atualização, você terá uma experiência de navegação mais interat
                     return;
                 }
                 fetchCampaignsData(accountId, startDate, endDate);
-                setSelectedCampaignId(null); // Reset selection on refresh
             };
 
-            const handleCampaignClick = (campaignId) => {
-                setSelectedCampaignId(campaignId);
-                setActiveTab('adsets'); // Switch to adsets tab when a campaign is clicked
-            };
-
-            const handleBackToCampaigns = () => {
-                setSelectedCampaignId(null);
-                setActiveTab('campaigns'); // Go back to campaigns tab
-            };
-
-            const renderDataCards = (data, type, onClickHandler = null) => {
-                let filteredData = data;
-                if (selectedCampaignId && type !== 'Campanha') {
-                    // Filter adsets/ads by selected campaign
-                    if (type === 'Conjunto de Anúncios') {
-                        filteredData = data.filter(item => item.campaign_id === selectedCampaignId);
-                    } else if (type === 'Criativo') {
-                        // For creatives, filter by adsets that belong to the selected campaign
-                        const adsetsInSelectedCampaign = adsets.filter(adset => adset.campaign_id === selectedCampaignId).map(adset => adset.id);
-                        filteredData = data.filter(item => adsetsInSelectedCampaign.includes(item.adset_id));
-                    }
-                } else if (selectedCampaignId && type === 'Campanha') {
-                    // If a campaign is selected, only show that campaign
-                    filteredData = data.filter(item => item.id === selectedCampaignId);
-                }
-
-
-                if (filteredData.length === 0) {
-                    return <p className="text-center text-gray-400 py-8">Nenhum {type} encontrado(a) para os filtros selecionados.</p>;
+            const renderDataCards = (data, type) => {
+                if (data.length === 0) {
+                    return <p className="text-center text-gray-400 py-8">Nenhum {type} encontrado(a) para o período e conta selecionados.</p>;
                 }
 
                 return (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredData.map(item => (
-                            <div
-                                key={item.id}
-                                className={`bg-gray-700 rounded-lg shadow-md p-5 border transition-transform duration-300 ${onClickHandler ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : ''} ${selectedCampaignId === item.id ? 'border-green-500 ring-2 ring-green-500' : 'border-gray-600'}`}
-                                onClick={onClickHandler ? () => onClickHandler(item.id) : null}
-                            >
+                        {data.map(item => (
+                            <div key={item.id} className="bg-gray-700 rounded-lg shadow-md p-5 border border-gray-600 transition-transform duration-300 hover:scale-105 hover:shadow-xl">
                                 <h3 className="text-xl font-semibold text-blue-300 mb-2 truncate-text">{item.name || item.id}</h3>
                                 {item.status && <div className="mb-3 flex flex-wrap gap-2">{renderStatus(item.status)} {item.effective_status && item.status !== item.effective_status && renderStatus(item.effective_status)}</div>}
                                 <p className="text-sm text-gray-300 mb-1"><strong>ID:</strong> <span className="text-gray-200">{item.id}</span></p>
                                 {item.start_time && <p className="text-sm text-gray-300 mb-1"><strong>Início:</strong> <span className="text-gray-200">{formatDate(item.start_time)}</span></p>}
                                 {item.stop_time && <p className="text-sm text-gray-300 mb-3"><strong>Fim:</strong> <span className="text-gray-200">{item.stop_time ? formatDate(item.stop_time) : 'Em aberto'}</span></p>}
                                 {item.objective && <p className="text-sm text-gray-300 mb-1"><strong>Objetivo:</strong> <span className="text-gray-200">{item.objective.replace(/_/g, ' ')}</span></p>}
-                                {item.campaign_id && type !== 'Campanha' && (
-                                    <p className="text-sm text-gray-300 mb-1">
-                                        <strong>Campanha:</strong> <span className="text-gray-200">{campaigns.find(c => c.id === item.campaign_id)?.name || item.campaign_id}</span>
-                                    </p>
-                                )}
-                                {item.adset_id && type === 'Criativo' && (
-                                    <p className="text-sm text-gray-300 mb-1">
-                                        <strong>Conjunto de Anúncios:</strong> <span className="text-gray-200">{adsets.find(a => a.id === item.adset_id)?.name || item.adset_id}</span>
-                                    </p>
-                                )}
                                 {item.preview_url && (
                                     <div className="mb-3">
                                         <p className="text-sm text-gray-300 mb-1"><strong>Prévia:</strong></p>
@@ -949,19 +892,6 @@ Com esta atualização, você terá uma experiência de navegação mais interat
                         </button>
                     </div>
 
-                    {/* Back button when a campaign is selected */}
-                    {selectedCampaignId && (
-                        <div className="mb-6">
-                            <button
-                                onClick={handleBackToCampaigns}
-                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition-all duration-300 transform hover:scale-105 flex items-center"
-                            >
-                                <i className="fas fa-arrow-left mr-2"></i> Voltar para Campanhas
-                            </button>
-                        </div>
-                    )}
-
-
                     {/* Tabs for Campaigns, Ad Sets, Ads */}
                     <div className="flex justify-center mb-8 bg-gray-700 p-2 rounded-lg shadow-inner">
                         <button
@@ -1000,7 +930,7 @@ Com esta atualização, você terá uma experiência de navegação mais interat
 
                     {!loading && !error && (
                         <div>
-                            {activeTab === 'campaigns' && renderDataCards(campaigns, 'Campanha', handleCampaignClick)}
+                            {activeTab === 'campaigns' && renderDataCards(campaigns, 'Campanha')}
                             {activeTab === 'adsets' && renderDataCards(adsets, 'Conjunto de Anúncios')}
                             {activeTab === 'ads' && renderDataCards(ads, 'Criativo')}
                         </div>
@@ -1067,4 +997,3 @@ Com esta atualização, você terá uma experiência de navegação mais interat
     </script>
 </body>
 </html>
-```
