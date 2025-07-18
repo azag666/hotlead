@@ -1,44 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dashboard Meta Ads - Dark Mode</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trackeador Meta Ads - Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>📊 Dashboard Meta Ads</h1>
-    <div class="account-selector">
-      <label for="accountSelect">Selecionar Conta de Anúncio:</label>
+  <div class="container">
+    <h1>Trackeador Meta Ads</h1>
+
+    <div class="filters">
+      <label for="accountSelect">Conta de Anúncio:</label>
       <select id="accountSelect"></select>
-    </div>
 
-    <div class="date-filters">
-      <label for="startDate">Data Inicial:</label>
+      <label for="startDate">Data início:</label>
       <input type="date" id="startDate" />
-      <label for="endDate">Data Final:</label>
+
+      <label for="endDate">Data fim:</label>
       <input type="date" id="endDate" />
-      <button id="btnRefresh">Atualizar Dados</button>
+
+      <button id="btnRefresh">Atualizar</button>
     </div>
-  </header>
 
-  <nav class="tabs">
-    <button class="tab-button active" data-tab="campanhas">Campanhas</button>
-    <button class="tab-button" data-tab="adsets">Conjuntos (Ad Sets)</button>
-    <button class="tab-button" data-tab="ads">Anúncios</button>
-  </nav>
+    <div class="tabs">
+      <button class="tab-button active" data-tab="campanhas">Campanhas</button>
+      <button class="tab-button" data-tab="adsets">Conjuntos de Anúncios</button>
+      <button class="tab-button" data-tab="ads">Anúncios</button>
+    </div>
 
-  <main>
-    <section id="campanhas" class="tab-content active"></section>
-    <section id="adsets" class="tab-content"></section>
-    <section id="ads" class="tab-content"></section>
-  </main>
+    <div id="campanhas" class="tab-content active"></div>
+    <div id="adsets" class="tab-content"></div>
+    <div id="ads" class="tab-content"></div>
+  </div>
 
-  <footer>
-    <p>Dashboard criado para uso pessoal.</p>
-  </footer>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
