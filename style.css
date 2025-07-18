@@ -1,105 +1,35 @@
 body {
-  font-family: 'Segoe UI', sans-serif;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
   margin: 0;
-  background: #f4f7fa;
-  color: #333;
-}
-
-header {
-  background-color: #2e86de;
-  color: white;
-  text-align: center;
-  padding: 30px 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 20px;
 }
 
 h1 {
-  margin: 0;
-  font-size: 28px;
+  text-align: center;
+  color: #2c3e50;
 }
 
-.filtros {
-  max-width: 960px;
-  margin: 30px auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  justify-content: center;
+#loading {
+  text-align: center;
+  font-size: 18px;
+  color: #666;
 }
 
-.filtros label {
-  width: 100%;
-  font-weight: bold;
+.account, .campaign, .adset, .ad {
+  background: #fff;
+  margin: 10px 0;
+  border-left: 5px solid #3498db;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.filtros select,
-.filtros input[type="date"],
-.filtros button {
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  width: 220px;
-}
+.campaign { border-color: #27ae60; }
+.adset { border-color: #f39c12; }
+.ad { border-color: #9b59b6; }
 
-.filtros button {
-  background: #2e86de;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.filtros button:hover {
-  background: #1b66c9;
-}
-
-#resultados {
-  max-width: 1100px;
-  margin: auto;
-  padding: 10px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
-}
-
-.campanha {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border-left: 6px solid #2e86de;
-  transition: transform 0.2s;
-}
-
-.campanha:hover {
-  transform: scale(1.02);
-}
-
-.status {
+.details {
+  margin-top: 5px;
   font-size: 14px;
-  font-weight: bold;
-  padding: 5px 10px;
-  border-radius: 20px;
-  display: inline-block;
-  text-transform: uppercase;
-}
-
-.status.ACTIVE {
-  background: #28a745;
-  color: white;
-}
-.status.PAUSED {
-  background: #f39c12;
-  color: white;
-}
-.status.ARCHIVED {
-  background: #6c757d;
-  color: white;
-}
-.status.IN_PROCESS, .status.PENDING_REVIEW {
-  background: #17a2b8;
-  color: white;
+  color: #333;
 }
