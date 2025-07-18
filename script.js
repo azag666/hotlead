@@ -8,38 +8,48 @@ const contas = [
   { id: "735462832220538", name: "Conta 5" },
 ];
 
-window.onload = () => {
+document.addEventListener("DOMContentLoaded", () => {
   const accountSelect = document.getElementById("accountSelect");
   const startDateInput = document.getElementById("startDate");
   const endDateInput = document.getElementById("endDate");
   const btnRefresh = document.getElementById("btnRefresh");
-  const tabs = document.querySelectorAll(".tab-button");
-  const tabContents = document.querySelectorAll(".tab-content");
+  const campaignsListContainer = document.getElementById("campaigns-list");
+  const darkModeToggle = document.getElementById("darkModeToggle");
 
-  // Preenche select com contas
+  // Load dark mode preference from localStorage
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Sun icon for light mode
+  } else {
+      document.documentElement.classList.remove('dark');
+      darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Moon icon for dark mode
+  }
+
+  // Toggle Dark Mode
+  darkModeToggle.addEventListener('click', () => {
+      if (document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+          darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+      } else {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+          darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      }
+  });
+
+  // Populate account select
   accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join("");
-  console.log("Contas carregadas no select");
 
-  // Datas padrão últimos 7 dias
+  // Set default dates to last 7 days
   const hoje = new Date();
   const semanaPassada = new Date(hoje);
   semanaPassada.setDate(hoje.getDate() - 7);
   startDateInput.value = semanaPassada.toISOString().slice(0, 10);
   endDateInput.value = hoje.toISOString().slice(0, 10);
 
-  // Troca abas
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      tabContents.forEach(tc => {
-        tc.classList.remove("active");
-        if(tc.id === tab.dataset.tab) tc.classList.add("active");
-      });
-    });
-  });
-
-  // --- Funções de busca na API ---
+  // --- API Fetch Functions ---
 
   async function fetchCampaigns(accountId, since, until) {
     const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
@@ -54,120 +64,57 @@ window.onload = () => {
     urlInsights.searchParams.set("limit", "500");
     urlInsights.searchParams.set("access_token", TOKEN);
 
-    const [campRes, insightsRes] = await Promise.all([
-      fetch(urlCampaigns),
-      fetch(urlInsights)
-    ]);
+    try {
+      const [campRes, insightsRes] = await Promise.all([
+        fetch(urlCampaigns),
+        fetch(urlInsights)
+      ]);
 
-    const campData = await campRes.json();
-    const insightsData = await insightsRes.json();
+      const campData = await campRes.json();
+      const insightsData = await insightsRes.json();
 
-    if(campData.error) throw new Error(campData.error.message);
-    if(insightsData.error) throw new Error(insightsData.error.message);
+      if(campData.error) throw new Error(campData.error.message);
+      if(insightsData.error) throw new Error(insightsData.error.message);
 
-    const insightsMap = {};
-    (insightsData.data || []).forEach(i => {
-      insightsMap[i.campaign_id] = i;
-    });
+      const insightsMap = {};
+      (insightsData.data || []).forEach(i => {
+        insightsMap[i.campaign_id] = i;
+      });
 
-    return (campData.data || []).map(camp => ({
-      ...camp,
-      insights: insightsMap[camp.id] || {}
-    }));
+      return (campData.data || []).map(camp => ({
+        ...camp,
+        insights: insightsMap[camp.id] || {}
+      }));
+    } catch (error) {
+      console.error("Erro ao buscar dados da API:", error);
+      throw error;
+    }
   }
 
-  async function fetchAdSets(accountId, since, until) {
-    const urlAdsets = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/adsets`);
-    urlAdsets.searchParams.set("fields", "id,name,status,daily_budget,start_time,end_time");
-    urlAdsets.searchParams.set("limit", "200");
-    urlAdsets.searchParams.set("access_token", TOKEN);
-
-    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
-    urlInsights.searchParams.set("level", "adset");
-    urlInsights.searchParams.set("fields", "adset_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
-    urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
-    urlInsights.searchParams.set("limit", "500");
-    urlInsights.searchParams.set("access_token", TOKEN);
-
-    const [adsetsRes, insightsRes] = await Promise.all([
-      fetch(urlAdsets),
-      fetch(urlInsights)
-    ]);
-
-    const adsetsData = await adsetsRes.json();
-    const insightsData = await insightsRes.json();
-
-    if(adsetsData.error) throw new Error(adsetsData.error.message);
-    if(insightsData.error) throw new Error(insightsData.error.message);
-
-    const insightsMap = {};
-    (insightsData.data || []).forEach(i => {
-      insightsMap[i.adset_id] = i;
-    });
-
-    return (adsetsData.data || []).map(adset => ({
-      ...adset,
-      insights: insightsMap[adset.id] || {}
-    }));
-  }
-
-  async function fetchAds(accountId, since, until) {
-    const urlAds = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/ads`);
-    urlAds.searchParams.set("fields", "id,name,status,creative");
-    urlAds.searchParams.set("limit", "200");
-    urlAds.searchParams.set("access_token", TOKEN);
-
-    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
-    urlInsights.searchParams.set("level", "ad");
-    urlInsights.searchParams.set("fields", "ad_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
-    urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
-    urlInsights.searchParams.set("limit", "500");
-    urlInsights.searchParams.set("access_token", TOKEN);
-
-    const [adsRes, insightsRes] = await Promise.all([
-      fetch(urlAds),
-      fetch(urlInsights)
-    ]);
-
-    const adsData = await adsRes.json();
-    const insightsData = await insightsRes.json();
-
-    if(adsData.error) throw new Error(adsData.error.message);
-    if(insightsData.error) throw new Error(insightsData.error.message);
-
-    const insightsMap = {};
-    (insightsData.data || []).forEach(i => {
-      insightsMap[i.ad_id] = i;
-    });
-
-    return (adsData.data || []).map(ad => ({
-      ...ad,
-      insights: insightsMap[ad.id] || {}
-    }));
-  }
-
-  // --- Helpers de formatação ---
+  // --- Formatting Helpers ---
 
   function formatCurrency(value) {
     const num = Number(value);
     if (isNaN(num)) return "R$ 0,00";
     return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
+
   function formatDate(dateStr) {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
     return d.toLocaleDateString("pt-BR");
   }
+
   function renderStatus(status) {
-    if(!status) return "";
+    if (!status) return "";
     status = status.toLowerCase();
     let cls = "";
-    if(status.includes("active")) cls = "active";
-    else if(status.includes("paused")) cls = "paused";
-    else if(status.includes("inactive")) cls = "inactive";
-    else cls = "inactive";
-    return `<span class="status ${cls}">${status}</span>`;
+    if (status.includes("active")) cls = "active";
+    else if (status.includes("paused")) cls = "paused";
+    else if (status.includes("inactive") || status.includes("archived") || status.includes("completed")) cls = "inactive";
+    return `<span class="status-badge ${cls}">${status.replace(/_/g, ' ')}</span>`;
   }
+
   function renderActions(actions) {
     if (!actions || !actions.length) return "<em>Sem ações registradas</em>";
     const labels = {
@@ -180,133 +127,68 @@ window.onload = () => {
       "add_to_cart": "Adicionados ao Carrinho",
       "initiate_checkout": "Inícios de Checkout"
     };
-    return actions.map(a => `<p>• ${labels[a.action_type] || a.action_type}: ${a.value}</p>`).join("");
+    return `<div class="actions-list">${actions.map(a => `<p>${labels[a.action_type] || a.action_type}: <strong>${a.value}</strong></p>`).join("")}</div>`;
   }
 
-  // --- Renderização das abas ---
+  // --- Render Campaigns ---
 
   function renderCampaigns(campaigns) {
-    const container = document.getElementById("campanhas");
-    container.innerHTML = "";
+    campaignsListContainer.innerHTML = ""; // Clear previous content
 
     if (!campaigns.length) {
-      container.innerHTML = "<p>Nenhuma campanha encontrada para o período.</p>";
+      campaignsListContainer.innerHTML = "<p class='text-center text-gray-400 col-span-full'>Nenhuma campanha encontrada para o período selecionado.</p>";
       return;
     }
 
     campaigns.forEach(c => {
       const ins = c.insights || {};
-      container.innerHTML += `
-        <div class="card">
+      campaignsListContainer.innerHTML += `
+        <div class="campaign-card">
           <h3>${c.name}</h3>
-          ${renderStatus(c.status)} ${renderStatus(c.effective_status)}
+          <div class="mb-2">
+            ${renderStatus(c.status)} ${renderStatus(c.effective_status)}
+          </div>
           <p><strong>Início:</strong> ${formatDate(c.start_time)}</p>
           <p><strong>Fim:</strong> ${formatDate(c.stop_time)}</p>
           <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
           <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
           <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-          <div>${renderActions(ins.actions)}</div>
+          ${renderActions(ins.actions)}
         </div>
       `;
     });
   }
 
-  function renderAdSets(adsets) {
-    const container = document.getElementById("adsets");
-    container.innerHTML = "";
+  // --- Main Load Function ---
 
-    if (!adsets.length) {
-      container.innerHTML = "<p>Nenhum conjunto de anúncios encontrado para o período.</p>";
-      return;
-    }
-
-    adsets.forEach(a => {
-      const ins = a.insights || {};
-      container.innerHTML += `
-        <div class="card">
-          <h3>${a.name}</h3>
-          ${renderStatus(a.status)}
-          <p><strong>Início:</strong> ${formatDate(a.start_time)}</p>
-          <p><strong>Fim:</strong> ${formatDate(a.end_time)}</p>
-          <p><strong>Orçamento diário:</strong> ${formatCurrency((a.daily_budget || 0)/100)}</p>
-          <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
-          <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
-          <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-          <div>${renderActions(ins.actions)}</div>
-        </div>
-      `;
-    });
-  }
-
-  function renderAds(ads) {
-    const container = document.getElementById("ads");
-    container.innerHTML = "";
-
-    if (!ads.length) {
-      container.innerHTML = "<p>Nenhum anúncio encontrado para o período.</p>";
-      return;
-    }
-
-    ads.forEach(a => {
-      const ins = a.insights || {};
-      const ctr = parseFloat(ins.ctr);
-      const ctrFormatada = !isNaN(ctr) ? ctr.toFixed(2) : "0.00";
-      const cpc = parseFloat(ins.cpc);
-      const cpcFormatado = !isNaN(cpc) ? formatCurrency(cpc) : formatCurrency(0);
-      const cpm = parseFloat(ins.cpm);
-      const cpmFormatado = !isNaN(cpm) ? formatCurrency(cpm) : formatCurrency(0);
-
-      container.innerHTML += `
-        <div class="card">
-          <h3>${a.name}</h3>
-          ${renderStatus(a.status)}
-          <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
-          <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
-          <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-          <p><strong>CTR:</strong> ${ctrFormatada}%</p>
-          <p><strong>CPC:</strong> ${cpcFormatado}</p>
-          <p><strong>CPM:</strong> ${cpmFormatado}</p>
-          <div>${renderActions(ins.actions)}</div>
-        </div>
-      `;
-    });
-  }
-
-  // --- Carrega tudo quando chamado ---
-
-  async function carregarTudo() {
+  async function loadCampaigns() {
     const accountId = accountSelect.value;
     const since = startDateInput.value;
     const until = endDateInput.value;
 
-    if (!accountId) return alert("Selecione uma conta de anúncio.");
-    if (!since || !until) return alert("Selecione as datas inicial e final.");
+    if (!accountId) {
+      alert("Selecione uma conta de anúncio.");
+      return;
+    }
+    if (!since || !until) {
+      alert("Selecione as datas inicial e final.");
+      return;
+    }
 
-    ["campanhas", "adsets", "ads"].forEach(id => {
-      document.getElementById(id).innerHTML = "<p>Carregando...</p>";
-    });
+    campaignsListContainer.innerHTML = "<p class='text-center text-green-400 col-span-full'><i class='fas fa-spinner fa-spin mr-2'></i> Carregando campanhas...</p>";
 
     try {
-      const [campaigns, adsets, ads] = await Promise.all([
-        fetchCampaigns(accountId, since, until),
-        fetchAdSets(accountId, since, until),
-        fetchAds(accountId, since, until),
-      ]);
-
+      const campaigns = await fetchCampaigns(accountId, since, until);
       renderCampaigns(campaigns);
-      renderAdSets(adsets);
-      renderAds(ads);
     } catch (error) {
-      ["campanhas", "adsets", "ads"].forEach(id => {
-        document.getElementById(id).innerHTML = `<p style="color:#f44336">Erro: ${error.message}</p>`;
-      });
+      campaignsListContainer.innerHTML = `<p class="text-center text-red-500 col-span-full">Erro ao carregar campanhas: ${error.message}. Por favor, tente novamente.</p>`;
     }
   }
 
-  // Eventos
-  accountSelect.addEventListener("change", carregarTudo);
-  btnRefresh.addEventListener("click", carregarTudo);
+  // Event Listeners
+  accountSelect.addEventListener("change", loadCampaigns);
+  btnRefresh.addEventListener("click", loadCampaigns);
 
-  // Carregamento inicial
-  carregarTudo();
-};
+  // Initial Load
+  loadCampaigns();
+});
