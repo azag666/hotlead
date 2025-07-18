@@ -8,112 +8,69 @@ const contas = [
   { id: "735462832220538", name: "Conta 5" },
 ];
 
-const accountSelect = document.getElementById("accountSelect");
-const startDateInput = document.getElementById("startDate");
-const endDateInput = document.getElementById("endDate");
-const btnRefresh = document.getElementById("btnRefresh");
-const tabs = document.querySelectorAll(".tab-button");
-const tabContents = document.querySelectorAll(".tab-content");
+window.onload = () => {
+  const accountSelect = document.getElementById("accountSelect");
+  const startDateInput = document.getElementById("startDate");
+  const endDateInput = document.getElementById("endDate");
+  const btnRefresh = document.getElementById("btnRefresh");
+  const tabs = document.querySelectorAll(".tab-button");
+  const tabContents = document.querySelectorAll(".tab-content");
 
-tabs.forEach(tab => {
-  tab.addEventListener("click", () => {
-    tabs.forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    tabContents.forEach(tc => {
-      tc.classList.remove("active");
-      if(tc.id === tab.dataset.tab) tc.classList.add("active");
+  // Preenche o select de contas
+  accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join("");
+  console.log("Contas carregadas no select");
+
+  // Set datas padrão últimos 7 dias
+  const hoje = new Date();
+  const semanaPassada = new Date(hoje);
+  semanaPassada.setDate(hoje.getDate() - 7);
+  startDateInput.value = semanaPassada.toISOString().slice(0, 10);
+  endDateInput.value = hoje.toISOString().slice(0, 10);
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      tabContents.forEach(tc => {
+        tc.classList.remove("active");
+        if(tc.id === tab.dataset.tab) tc.classList.add("active");
+      });
     });
   });
-});
 
-function formatCurrency(value) {
-  return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-function formatDate(dateStr) {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("pt-BR");
-}
-function renderStatus(status) {
-  if(!status) return "";
-  status = status.toLowerCase();
-  let cls = "";
-  if(status.includes("active")) cls = "active";
-  else if(status.includes("paused")) cls = "paused";
-  else if(status.includes("inactive")) cls = "inactive";
-  else cls = "inactive";
-  return `<span class="status ${cls}">${status}</span>`;
-}
-function renderActions(actions) {
-  if (!actions || !actions.length) return "<em>Sem ações registradas</em>";
-  const labels = {
-    "link_click": "Cliques em Links",
-    "post_engagement": "Engajamento em Post",
-    "page_engagement": "Engajamento na Página",
-    "lead": "Leads",
-    "purchase": "Compras",
-    "view_content": "Visualizações",
-    "add_to_cart": "Adicionados ao Carrinho",
-    "initiate_checkout": "Inícios de Checkout"
-  };
-  return actions.map(a => `<p>• ${labels[a.action_type] || a.action_type}: ${a.value}</p>`).join("");
-}
+  async function carregarTudo() {
+    const accountId = accountSelect.value;
+    const since = startDateInput.value;
+    const until = endDateInput.value;
 
-function loadAccounts() {
-  accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join("");
-}
+    if (!accountId) return alert("Selecione uma conta de anúncio.");
+    if (!since || !until) return alert("Selecione as datas inicial e final.");
 
-async function fetchCampaigns(accountId, since, until) {
-  const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
-  urlCampaigns.searchParams.set("fields", "name,status,effective_status,start_time,stop_time");
-  urlCampaigns.searchParams.set("limit", "200");
-  urlCampaigns.searchParams.set("access_token", TOKEN);
+    ["campanhas", "adsets", "ads"].forEach(id => {
+      document.getElementById(id).innerHTML = "<p>Carregando...</p>";
+    });
 
-  const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
-  urlInsights.searchParams.set("level", "campaign");
-  urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
-  urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
-  urlInsights.searchParams.set("limit", "500");
-  urlInsights.searchParams.set("access_token", TOKEN);
+    try {
+      const [campaigns, adsets, ads] = await Promise.all([
+        fetchCampaigns(accountId, since, until),
+        fetchAdSets(accountId, since, until),
+        fetchAds(accountId, since, until),
+      ]);
 
-  const [campRes, insightsRes] = await Promise.all([
-    fetch(urlCampaigns),
-    fetch(urlInsights)
-  ]);
+      renderCampaigns(campaigns);
+      renderAdSets(adsets);
+      renderAds(ads);
+    } catch (error) {
+      ["campanhas", "adsets", "ads"].forEach(id => {
+        document.getElementById(id).innerHTML = `<p style="color:#f44336">Erro: ${error.message}</p>`;
+      });
+    }
+  }
 
-  const campData = await campRes.json();
-  const insightsData = await insightsRes.json();
+  accountSelect.addEventListener("change", carregarTudo);
+  btnRefresh.addEventListener("click", carregarTudo);
 
-  if(campData.error) throw new Error(campData.error.message);
-  if(insightsData.error) throw new Error(insightsData.error.message);
+  carregarTudo();
 
-  const insightsMap = {};
-  (insightsData.data || []).forEach(i => {
-    insightsMap[i.campaign_id] = i;
-  });
-
-  return (campData.data || []).map(camp => ({
-    ...camp,
-    insights: insightsMap[camp.id] || {}
-  }));
-}
-
-async function fetchAdSets(accountId, since, until) {
-  const urlAdsets = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/adsets`);
-  urlAdsets.searchParams.set("fields", "name,status,daily_budget,start_time,end_time");
-  urlAdsets.searchParams.set("limit", "200");
-  urlAdsets.searchParams.set("access_token", TOKEN);
-
-  const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
-  urlInsights.searchParams.set("level", "adset");
-  urlInsights.searchParams.set("fields", "adset_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
-  urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
-  urlInsights.searchParams.set("limit", "500");
-  urlInsights.searchParams.set("access_token", TOKEN);
-
-  const [adsetsRes, insightsRes] = await Promise.all([
-    fetch(urlAdsets),
-    fetch(urlInsights)
-  ]);
-
-  const adsetsData = await adsetsRes.json();
+  // Funções fetch e render (copie as que você já tem ou me avise se precisar)
+};
