@@ -112,26 +112,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { since, until } = getTimeRangeDates(currentTimeRange);
 
             let apiUrl;
-            const baseFields = 'spend,actions,action_values,roas'; // Campos comuns a todas as requisições
+            const baseFields = 'spend,actions,action_values,roas';
+            let currentLevel = 'campaign'; // Variável para rastrear o nível da requisição atual
 
+            // Lógica para construir a URL da API com base no agrupamento selecionado
             if (currentTimeIncrement === 'daily' || currentTimeIncrement === 'hourly') {
-                // Para agrupamentos diários/horários, consultamos no nível da conta
-                // e usamos breakdowns para obter dados por campanha.
-                // Isso evita o erro (#100) com level=campaign e daily/hourly.
+                // Para agrupamentos diários/horários, consultamos no nível da conta (level=account)
+                // para evitar o erro da API com campaign_name e esses time_increments.
                 apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
-                           `fields=campaign_name,${baseFields}&` + // Solicita campaign_name aqui
+                           `fields=${baseFields}&` + // Não inclui campaign_name aqui
                            `time_range={'since':'${since}','until':'${until}'}&` +
                            `time_increment=${currentTimeIncrement}&` +
-                           `breakdowns=campaign_id&` + // Detalha por ID da campanha
+                           `level=account&` + // Nível da conta
                            `access_token=${ACCESS_TOKEN}`;
-            } else {
-                // Para agrupamentos mensais/todos os dias, podemos consultar diretamente no nível da campanha.
+                currentLevel = 'account'; // Define o nível atual como conta
+            } else { // Isso cobre 'all_days' (Total do Período) e qualquer 'monthly' futuro
+                // Para 'all_days', podemos consultar no nível da campanha (level=campaign)
                 apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
                            `fields=campaign_name,${baseFields}&` +
                            `time_range={'since':'${since}','until':'${until}'}&` +
-                           `time_increment=${currentTimeIncrement}&` +
-                           `level=campaign&` + // Mantém level=campaign para esses incrementos
+                           `time_increment=${currentTimeIncrement}&` + // Será 'all_days'
+                           `level=campaign&` + // Nível da campanha
                            `access_token=${ACCESS_TOKEN}`;
+                currentLevel = 'campaign'; // Define o nível atual como campanha
             }
 
             const response = await fetch(apiUrl);
@@ -154,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             insightsDisplayElement.innerHTML = ''; // Limpa o display anterior
 
             if (insights && insights.length > 0) {
-                // Iterar sobre cada insight (que pode ser por dia/hora e por campanha)
+                // Iterar sobre cada insight (que pode ser por dia/hora ou por campanha)
                 insights.forEach(insight => {
                     totalSpend += parseFloat(insight.spend || 0);
 
@@ -176,7 +179,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     // Agrega ROAS para cálculo da média
                     if (insight.roas && insight.roas.length > 0) {
-                        // O ROAS pode vir como um array de objetos, pegamos o primeiro 'value'
                         const roasValue = parseFloat(insight.roas[0].value || 0);
                         if (roasValue > 0) { // Apenas inclui ROAS válidos na média
                             totalRoasSum += roasValue;
@@ -193,15 +195,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (currentTimeIncrement === 'hourly') {
                         periodDisplay += ` Hora: ${insight.date_stop.substring(11, 16)}`;
                     } else if (currentTimeIncrement === 'daily' && insight.date_start !== insight.date_stop) {
-                        // Para diário, se as datas de início e fim forem diferentes (ex: para um intervalo), mostra o intervalo
                         periodDisplay += ` - ${insight.date_stop}`;
                     }
 
                     let itemContent = `<strong>${periodDisplay}</strong><br>`;
-                    itemContent += `<div class="label">Campanha:</div><span>${insight.campaign_name || 'N/A'}</span>`;
-                    itemContent += `<div class="label">Gasto:</div><span>${formatCurrency(parseFloat(insight.spend || 0))}</span>`;
 
-                    // Detalhes de compras para este insight específico
+                    // Exibe o nome da campanha apenas se os dados forem no nível da campanha
+                    if (currentLevel === 'campaign') {
+                        itemContent += `<div class="label">Campanha:</div><span>${insight.campaign_name || 'N/A'}</span>`;
+                    } else {
+                        // Se for nível de conta (diário/horário), indica que são dados agregados
+                        itemContent += `<div class="label">Tipo de Dado:</div><span>Agregado da Conta</span>`;
+                    }
+
+                    itemContent += `<div class="label">Gasto:</div><span>${formatCurrency(parseFloat(insight.spend || 0))}</span>`;
+                    
                     let itemPurchases = 0;
                     let itemConversionValue = 0;
                     if (insight.actions) {
@@ -228,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Atualiza as métricas totais no topo do dashboard
                 totalSpendElement.textContent = formatCurrency(totalSpend);
-                totalPurchasesElement.textContent = totalPurchases.toFixed(0); // Compras geralmente são números inteiros
+                totalPurchasesElement.textContent = totalPurchases.toFixed(0);
                 totalConversionValueElement.textContent = formatCurrency(totalConversionValue);
                 totalRoasElement.textContent = roasCount > 0 ? formatRoas(totalRoasSum / roasCount) : 'N/A';
 
@@ -275,7 +283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Eventos para botões de agrupamento (Por Dia, Por Hora)
+    // Eventos para botões de agrupamento (Por Dia, Por Hora, Total do Período)
     incrementButtons.forEach(button => {
         button.addEventListener('click', (event) => {
             // Remove a classe 'active' de todos os botões e adiciona ao clicado
