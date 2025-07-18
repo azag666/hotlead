@@ -1,6 +1,5 @@
 const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
 
-// Contas fixas aprovadas para o token
 const contas = [
   { id: "507111372463621", name: "Conta 1" },
   { id: "1421566932486575", name: "Conta 2" },
@@ -13,11 +12,9 @@ const accountSelect = document.getElementById("accountSelect");
 const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
 const btnRefresh = document.getElementById("btnRefresh");
-
 const tabs = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
 
-// Alterna abas
 tabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tabs.forEach(t => t.classList.remove("active"));
@@ -29,7 +26,6 @@ tabs.forEach(tab => {
   });
 });
 
-// Formatação
 function formatCurrency(value) {
   return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
@@ -56,12 +52,10 @@ function renderActions(actions) {
   return actions.map(a => `<p>• ${labels[a.action_type] || a.action_type}: ${a.value}</p>`).join("");
 }
 
-// Preenche dropdown com contas fixas
 function loadAccounts() {
   accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join("");
 }
 
-// Busca campanhas + insights
 async function fetchCampaigns(accountId, since, until) {
   const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
   urlCampaigns.searchParams.set("fields", "name,status,effective_status,start_time,stop_time");
@@ -69,6 +63,7 @@ async function fetchCampaigns(accountId, since, until) {
 
   const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
   urlInsights.searchParams.set("level", "campaign");
+  // <== NÃO colocar start_time/end_time aqui
   urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
   urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
   urlInsights.searchParams.set("limit", "500");
@@ -103,6 +98,7 @@ async function fetchAdSets(accountId, since, until) {
 
   const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
   urlInsights.searchParams.set("level", "adset");
+  // <== NÃO colocar start_time/end_time aqui
   urlInsights.searchParams.set("fields", "adset_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
   urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
   urlInsights.searchParams.set("limit", "500");
@@ -137,6 +133,7 @@ async function fetchAds(accountId, since, until) {
 
   const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
   urlInsights.searchParams.set("level", "ad");
+  // <== NÃO colocar start_time/end_time aqui
   urlInsights.searchParams.set("fields", "ad_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
   urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
   urlInsights.searchParams.set("limit", "500");
@@ -236,66 +233,4 @@ function renderAds(ads) {
     const ins = a.insights;
     container.innerHTML += `
       <div class="card">
-        <h3>${a.name}</h3>
-        ${renderStatus(a.status)}
-        <p><strong>Início:</strong> ${formatDate(a.start_time)}</p>
-        <p><strong>Fim:</strong> ${formatDate(a.end_time)}</p>
-        <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
-        <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
-        <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-        <p><strong>CTR:</strong> ${(ins.ctr || 0).toFixed(2)}%</p>
-        <p><strong>CPC:</strong> ${formatCurrency(ins.cpc || 0)}</p>
-        <p><strong>CPM:</strong> ${formatCurrency(ins.cpm || 0)}</p>
-        <div>${renderActions(ins.actions)}</div>
-      </div>
-    `;
-  });
-}
-
-async function carregarTudo() {
-  const accountId = accountSelect.value;
-  const since = startDateInput.value;
-  const until = endDateInput.value;
-
-  if (!accountId) return alert("Selecione uma conta de anúncio.");
-  if (!since || !until) return alert("Selecione as datas inicial e final.");
-
-  ["campanhas", "adsets", "ads"].forEach(id => {
-    document.getElementById(id).innerHTML = "<p>Carregando...</p>";
-  });
-
-  try {
-    const [campaigns, adsets, ads] = await Promise.all([
-      fetchCampaigns(accountId, since, until),
-      fetchAdSets(accountId, since, until),
-      fetchAds(accountId, since, until),
-    ]);
-
-    renderCampaigns(campaigns);
-    renderAdSets(adsets);
-    renderAds(ads);
-  } catch (error) {
-    ["campanhas", "adsets", "ads"].forEach(id => {
-      document.getElementById(id).innerHTML = `<p style="color:#f44336">Erro: ${error.message}</p>`;
-    });
-  }
-}
-
-function init() {
-  // Preenche contas no dropdown
-  loadAccounts();
-
-  // Datas padrão últimos 7 dias
-  const hoje = new Date();
-  const semanaPassada = new Date(hoje);
-  semanaPassada.setDate(hoje.getDate() - 7);
-  startDateInput.value = semanaPassada.toISOString().slice(0, 10);
-  endDateInput.value = hoje.toISOString().slice(0, 10);
-
-  carregarTudo();
-
-  accountSelect.addEventListener("change", carregarTudo);
-  btnRefresh.addEventListener("click", carregarTudo);
-}
-
-init();
+       
