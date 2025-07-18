@@ -156,34 +156,68 @@ h1, h2 {
     flex-basis: calc(50% - 5px);
 }
 
-/* Responsividade */
+/* New styles for the main dashboard's account links */
+.account-links-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.account-link-item {
+    background-color: #f0f8ff; /* Light blue background */
+    border: 1px solid #cceeff;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex: 1;
+    min-width: 280px;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.account-link-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.account-link-item .button-link {
+    display: block;
+    background-color: #1877f2;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 15px;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.account-link-item .button-link:hover {
+    background-color: #0056b3;
+}
+
+.account-link-item p {
+    margin: 5px 0;
+    font-size: 0.95em;
+    color: #555;
+}
+
+.account-link-item p strong {
+    color: #333;
+}
+
+/* Responsividade para account links */
 @media (max-width: 768px) {
-    .controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .control-group {
-        width: 100%;
-        align-items: center;
-    }
-    .select-box {
-        width: 100%;
-    }
-    .filter-button, .increment-button {
-        flex: 1;
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    .summary-metrics {
-        flex-direction: column;
-        align-items: center;
-    }
-    .metric-card {
+    .account-link-item {
+        min-width: unset;
         width: 90%;
-        max-width: none;
-    }
-    .insight-item span, .insight-item .label {
-        flex-basis: 100%;
-        text-align: left;
     }
 }
