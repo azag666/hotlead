@@ -64,12 +64,12 @@ function loadAccounts() {
 // Busca campanhas + insights
 async function fetchCampaigns(accountId, since, until) {
   const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
-  urlCampaigns.searchParams.set("fields", "name,status,effective_status");
+  urlCampaigns.searchParams.set("fields", "name,status,effective_status,start_time,stop_time");
   urlCampaigns.searchParams.set("limit", "200");
 
   const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
   urlInsights.searchParams.set("level", "campaign");
-  urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm,start_time,end_time");
+  urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
   urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
   urlInsights.searchParams.set("limit", "500");
   urlInsights.searchParams.set("access_token", TOKEN);
@@ -103,7 +103,7 @@ async function fetchAdSets(accountId, since, until) {
 
   const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
   urlInsights.searchParams.set("level", "adset");
-  urlInsights.searchParams.set("fields", "adset_id,impressions,clicks,spend,actions,ctr,cpc,cpm,start_time,end_time");
+  urlInsights.searchParams.set("fields", "adset_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
   urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
   urlInsights.searchParams.set("limit", "500");
   urlInsights.searchParams.set("access_token", TOKEN);
@@ -137,7 +137,7 @@ async function fetchAds(accountId, since, until) {
 
   const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
   urlInsights.searchParams.set("level", "ad");
-  urlInsights.searchParams.set("fields", "ad_id,impressions,clicks,spend,actions,ctr,cpc,cpm,start_time,end_time");
+  urlInsights.searchParams.set("fields", "ad_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
   urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
   urlInsights.searchParams.set("limit", "500");
   urlInsights.searchParams.set("access_token", TOKEN);
@@ -164,7 +164,6 @@ async function fetchAds(accountId, since, until) {
   }));
 }
 
-// Renderiza campanhas
 function renderCampaigns(campaigns) {
   const container = document.getElementById("campanhas");
   container.innerHTML = "";
@@ -180,21 +179,20 @@ function renderCampaigns(campaigns) {
       <div class="card">
         <h3>${c.name}</h3>
         ${renderStatus(c.effective_status || c.status)}
+        <p><strong>Início:</strong> ${formatDate(c.start_time)}</p>
+        <p><strong>Fim:</strong> ${formatDate(c.stop_time)}</p>
         <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
         <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
         <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
         <p><strong>CTR:</strong> ${(ins.ctr || 0).toFixed(2)}%</p>
         <p><strong>CPC:</strong> ${formatCurrency(ins.cpc || 0)}</p>
         <p><strong>CPM:</strong> ${formatCurrency(ins.cpm || 0)}</p>
-        <p><strong>Início:</strong> ${formatDate(ins.start_time)}</p>
-        <p><strong>Fim:</strong> ${formatDate(ins.end_time)}</p>
         <div>${renderActions(ins.actions)}</div>
       </div>
     `;
   });
 }
 
-// Renderiza ad sets
 function renderAdSets(adsets) {
   const container = document.getElementById("adsets");
   container.innerHTML = "";
@@ -225,7 +223,6 @@ function renderAdSets(adsets) {
   });
 }
 
-// Renderiza anúncios
 function renderAds(ads) {
   const container = document.getElementById("ads");
   container.innerHTML = "";
@@ -241,8 +238,8 @@ function renderAds(ads) {
       <div class="card">
         <h3>${a.name}</h3>
         ${renderStatus(a.status)}
-        <p><strong>Início:</strong> ${formatDate(ins.start_time)}</p>
-        <p><strong>Fim:</strong> ${formatDate(ins.end_time)}</p>
+        <p><strong>Início:</strong> ${formatDate(a.start_time)}</p>
+        <p><strong>Fim:</strong> ${formatDate(a.end_time)}</p>
         <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
         <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
         <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
@@ -255,7 +252,6 @@ function renderAds(ads) {
   });
 }
 
-// Função principal
 async function carregarTudo() {
   const accountId = accountSelect.value;
   const since = startDateInput.value;
