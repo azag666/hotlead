@@ -112,29 +112,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { since, until } = getTimeRangeDates(currentTimeRange);
 
             let apiUrl;
-            const baseFields = 'spend,actions,action_values,roas';
-            let currentLevel = 'campaign'; // Variável para rastrear o nível da requisição atual
+            const baseFields = 'spend,actions,action_values,roas'; // Campos comuns a todas as requisições
 
             // Lógica para construir a URL da API com base no agrupamento selecionado
             if (currentTimeIncrement === 'daily' || currentTimeIncrement === 'hourly') {
                 // Para agrupamentos diários/horários, consultamos no nível da conta (level=account)
-                // para evitar o erro da API com campaign_name e esses time_increments.
+                // e usamos breakdowns=campaign_id para obter os detalhes por campanha.
                 apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
-                           `fields=${baseFields}&` + // Não inclui campaign_name aqui
+                           `fields=${baseFields},campaign_name&` + // Adiciona campaign_name aos campos
                            `time_range={'since':'${since}','until':'${until}'}&` +
                            `time_increment=${currentTimeIncrement}&` +
                            `level=account&` + // Nível da conta
+                           `breakdowns=campaign_id&` + // Detalha por ID da campanha
                            `access_token=${ACCESS_TOKEN}`;
-                currentLevel = 'account'; // Define o nível atual como conta
             } else { // Isso cobre 'all_days' (Total do Período) e qualquer 'monthly' futuro
-                // Para 'all_days', podemos consultar no nível da campanha (level=campaign)
+                // Para 'all_days', podemos consultar diretamente no nível da campanha (level=campaign)
                 apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
                            `fields=campaign_name,${baseFields}&` +
                            `time_range={'since':'${since}','until':'${until}'}&` +
                            `time_increment=${currentTimeIncrement}&` + // Será 'all_days'
                            `level=campaign&` + // Nível da campanha
                            `access_token=${ACCESS_TOKEN}`;
-                currentLevel = 'campaign'; // Define o nível atual como campanha
             }
 
             const response = await fetch(apiUrl);
@@ -200,14 +198,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     let itemContent = `<strong>${periodDisplay}</strong><br>`;
 
-                    // Exibe o nome da campanha apenas se os dados forem no nível da campanha
-                    if (currentLevel === 'campaign') {
-                        itemContent += `<div class="label">Campanha:</div><span>${insight.campaign_name || 'N/A'}</span>`;
-                    } else {
-                        // Se for nível de conta (diário/horário), indica que são dados agregados
-                        itemContent += `<div class="label">Tipo de Dado:</div><span>Agregado da Conta</span>`;
-                    }
-
+                    // O nome da campanha virá em 'campaign_name' quando breakdowns=campaign_id é usado
+                    itemContent += `<div class="label">Campanha:</div><span>${insight.campaign_name || 'N/A'}</span>`;
+                    
                     itemContent += `<div class="label">Gasto:</div><span>${formatCurrency(parseFloat(insight.spend || 0))}</span>`;
                     
                     let itemPurchases = 0;
