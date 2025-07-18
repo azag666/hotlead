@@ -111,33 +111,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const { since, until } = getTimeRangeDates(currentTimeRange);
 
-            // 1. Constrói a URL para a API Graph do Meta (endpoint /insights)
-            // Campos solicitados:
-            // - campaign_name: Nome da campanha
-            // - spend: Gasto
-            // - actions: Array de ações (inclui compras, leads, etc.)
-            // - action_values: Array de valores de ações (valor das compras, etc.)
-            // - roas: Retorno sobre o gasto com anúncios
-            // time_range: Define o período (data de início e fim)
-            // time_increment: Define o agrupamento (daily, hourly)
-            // level: Define o nível de detalhe (account, campaign, adset, ad). Usaremos 'campaign' para ver os detalhes por campanha.
-            const apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
-                           `fields=campaign_name,spend,actions,action_values,roas&` +
+            let apiUrl;
+            const baseFields = 'spend,actions,action_values,roas'; // Campos comuns a todas as requisições
+
+            if (currentTimeIncrement === 'daily' || currentTimeIncrement === 'hourly') {
+                // Para agrupamentos diários/horários, consultamos no nível da conta
+                // e usamos breakdowns para obter dados por campanha.
+                // Isso evita o erro (#100) com level=campaign e daily/hourly.
+                apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
+                           `fields=campaign_name,${baseFields}&` + // Solicita campaign_name aqui
                            `time_range={'since':'${since}','until':'${until}'}&` +
                            `time_increment=${currentTimeIncrement}&` +
-                           `level=campaign&` + // Nível da campanha para ver os detalhes por campanha
+                           `breakdowns=campaign_id&` + // Detalha por ID da campanha
                            `access_token=${ACCESS_TOKEN}`;
+            } else {
+                // Para agrupamentos mensais/todos os dias, podemos consultar diretamente no nível da campanha.
+                apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
+                           `fields=campaign_name,${baseFields}&` +
+                           `time_range={'since':'${since}','until':'${until}'}&` +
+                           `time_increment=${currentTimeIncrement}&` +
+                           `level=campaign&` + // Mantém level=campaign para esses incrementos
+                           `access_token=${ACCESS_TOKEN}`;
+            }
 
-            // 2. Faz a requisição HTTP para a API do Meta
             const response = await fetch(apiUrl);
 
-            // 3. Verifica se a resposta da requisição foi bem-sucedida (status 200 OK)
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`Erro da API Meta: ${errorData.error.message} (Código: ${errorData.error.code})`);
             }
 
-            // 4. Converte a resposta para JSON
             const data = await response.json();
             const insights = data.data; // Os dados de insights estão na propriedade 'data'
 
@@ -151,9 +154,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             insightsDisplayElement.innerHTML = ''; // Limpa o display anterior
 
             if (insights && insights.length > 0) {
-                // Iterar sobre cada insight (que pode ser por dia ou hora)
+                // Iterar sobre cada insight (que pode ser por dia/hora e por campanha)
                 insights.forEach(insight => {
-                    // Agrega os totais do período
                     totalSpend += parseFloat(insight.spend || 0);
 
                     // Processa ações e valores de ações
@@ -186,7 +188,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const insightItem = document.createElement('div');
                     insightItem.classList.add('insight-item');
 
-                    let itemContent = `<strong>Período: ${insight.date_start} ${currentTimeIncrement === 'hourly' ? `Hora: ${insight.date_stop.substring(11, 16)}` : ''}</strong><br>`;
+                    // Determina a exibição do período com base no time_increment
+                    let periodDisplay = `Período: ${insight.date_start}`;
+                    if (currentTimeIncrement === 'hourly') {
+                        periodDisplay += ` Hora: ${insight.date_stop.substring(11, 16)}`;
+                    } else if (currentTimeIncrement === 'daily' && insight.date_start !== insight.date_stop) {
+                        // Para diário, se as datas de início e fim forem diferentes (ex: para um intervalo), mostra o intervalo
+                        periodDisplay += ` - ${insight.date_stop}`;
+                    }
+
+                    let itemContent = `<strong>${periodDisplay}</strong><br>`;
                     itemContent += `<div class="label">Campanha:</div><span>${insight.campaign_name || 'N/A'}</span>`;
                     itemContent += `<div class="label">Gasto:</div><span>${formatCurrency(parseFloat(insight.spend || 0))}</span>`;
 
