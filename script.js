@@ -1,5 +1,14 @@
 const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
 
+// Contas fixas aprovadas para o token
+const contas = [
+  { id: "507111372463621", name: "Conta 1" },
+  { id: "1421566932486575", name: "Conta 2" },
+  { id: "1767547067979139", name: "Conta 3" },
+  { id: "1073555467565665", name: "Conta 4" },
+  { id: "735462832220538", name: "Conta 5" },
+];
+
 const accountSelect = document.getElementById("accountSelect");
 const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
@@ -7,8 +16,6 @@ const btnRefresh = document.getElementById("btnRefresh");
 
 const tabs = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
-
-let contas = [];
 
 // Alterna abas
 tabs.forEach(tab => {
@@ -49,24 +56,12 @@ function renderActions(actions) {
   return actions.map(a => `<p>• ${labels[a.action_type] || a.action_type}: ${a.value}</p>`).join("");
 }
 
-// Carrega as contas via API usando token (novo)
-async function loadAccounts() {
-  const url = `https://graph.facebook.com/v19.0/me/adaccounts?access_token=${TOKEN}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  if(data.error) {
-    alert("Erro ao buscar contas: " + data.error.message);
-    return;
-  }
-  contas = data.data || [];
-  if(contas.length === 0) {
-    alert("Nenhuma conta de anúncio encontrada para esse token.");
-    return;
-  }
-  accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name || c.id}</option>`).join("");
+// Preenche dropdown com contas fixas
+function loadAccounts() {
+  accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join("");
 }
 
-// Busca campanhas com insights filtrando por datas
+// Busca campanhas + insights
 async function fetchCampaigns(accountId, since, until) {
   const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
   urlCampaigns.searchParams.set("fields", "name,status,effective_status");
@@ -169,6 +164,7 @@ async function fetchAds(accountId, since, until) {
   }));
 }
 
+// Renderiza campanhas
 function renderCampaigns(campaigns) {
   const container = document.getElementById("campanhas");
   container.innerHTML = "";
@@ -198,6 +194,7 @@ function renderCampaigns(campaigns) {
   });
 }
 
+// Renderiza ad sets
 function renderAdSets(adsets) {
   const container = document.getElementById("adsets");
   container.innerHTML = "";
@@ -228,6 +225,7 @@ function renderAdSets(adsets) {
   });
 }
 
+// Renderiza anúncios
 function renderAds(ads) {
   const container = document.getElementById("ads");
   container.innerHTML = "";
@@ -257,6 +255,7 @@ function renderAds(ads) {
   });
 }
 
+// Função principal
 async function carregarTudo() {
   const accountId = accountSelect.value;
   const since = startDateInput.value;
@@ -286,7 +285,10 @@ async function carregarTudo() {
   }
 }
 
-async function init() {
+function init() {
+  // Preenche contas no dropdown
+  loadAccounts();
+
   // Datas padrão últimos 7 dias
   const hoje = new Date();
   const semanaPassada = new Date(hoje);
@@ -294,10 +296,10 @@ async function init() {
   startDateInput.value = semanaPassada.toISOString().slice(0, 10);
   endDateInput.value = hoje.toISOString().slice(0, 10);
 
-  await loadAccounts();
   carregarTudo();
+
+  accountSelect.addEventListener("change", carregarTudo);
+  btnRefresh.addEventListener("click", carregarTudo);
 }
 
-accountSelect.addEventListener("change", carregarTudo);
-btnRefresh.addEventListener("click", carregarTudo);
 init();
