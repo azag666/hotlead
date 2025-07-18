@@ -1,119 +1,123 @@
-/* style.css */
-
-/* Remove estilos padrão que podem conflitar com Tailwind ou que Tailwind já cobre */
 body {
-  /* background-color e cor do texto são definidos no body do HTML com Tailwind */
-  /* font-family, margin, padding são definidos no body do HTML com Tailwind */
+  background-color: #121212;
+  color: #ddd;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
 }
 
 .container {
-  /* max-width, margin, padding são definidos no container do HTML com Tailwind */
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 h1 {
-  /* text-align, margin-bottom, color são definidos no h1 do HTML com Tailwind */
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #4caf50;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
 }
 
 .filters label {
-  font-weight: 600; /* Tailwind usa font-semibold para isso */
-  /* margin-right e display flex/gap são definidos no filters do HTML com Tailwind */
+  font-weight: 600;
+  margin-right: 4px;
 }
 
 .filters select,
 .filters input[type="date"] {
-  /* Estilos são definidos nos inputs do HTML com Tailwind */
+  background-color: #222;
+  border: 1px solid #555;
+  color: #ddd;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
 .filters button {
-  /* Estilos são definidos nos buttons do HTML com Tailwind */
-}
-
-.filters button:hover {
-  /* Estilos de hover são definidos nos buttons do HTML com Tailwind */
-}
-
-.tabs {
-  /* display, justify-content, margin-bottom, gap são definidos no tabs do HTML com Tailwind */
-}
-
-.tab-button {
-  /* background-color, border, color, padding, border-radius, cursor, font-weight, transition são definidos nos buttons do HTML com Tailwind */
-}
-
-.tab-button.active {
-  /* background-color, color, border são definidos nos buttons do HTML com Tailwind */
-  /* Garante que o botão ativo não tenha borda se desejar (Tailwind pode sobrescrever) */
-  border-color: transparent;
-}
-
-.tab-content {
-  display: none;
-  /* grid, grid-cols, gap são definidos no tab-content do HTML com Tailwind */
-}
-
-.tab-content.active {
-  display: grid; /* Volta a ser grid quando ativo */
-}
-
-/* Estilos para os cards */
-.card-link {
-  text-decoration: none; /* Remove o sublinhado padrão dos links */
-  color: inherit; /* Garante que a cor do texto seja herdada */
-}
-
-.card {
-  /* background-color, padding, border-radius, shadow são definidos nos cards do HTML com Tailwind */
-  /* hover:bg-gray-600 também está no HTML */
-  transition: all 0.3s ease; /* Transição para o hover */
-}
-
-/* Estilos de status */
-.status {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8em;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-left: 5px;
-  white-space: nowrap; /* Evita quebra de linha em tags de status */
-}
-
-.status.active {
-  background-color: #38a169; /* green-600 do Tailwind */
-  color: white;
-}
-
-.status.paused {
-  background-color: #f6ad55; /* orange-400 do Tailwind */
-  color: #333;
-}
-
-.status.inactive {
-  background-color: #e53e3e; /* red-600 do Tailwind */
-  color: white;
-}
-
-/* Estilos para o botão "Voltar" na página de detalhes */
-.back-button {
-  background-color: #555;
+  background-color: #4caf50;
   border: none;
-  padding: 10px 20px;
-  color: #fff;
+  padding: 8px 16px;
+  color: #121212;
   font-weight: 700;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-top: 20px;
+}
+
+.filters button:hover {
+  background-color: #388e3c;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  gap: 12px;
+}
+
+.tab-button {
+  background-color: #222;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.tab-button.active {
+  background-color: #4caf50;
+  color: #121212;
+  border-color: #4caf50;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
   display: block;
-  width: fit-content;
-  text-decoration: none; /* Para garantir que não haja sublinhado se for um link */
 }
 
-.back-button:hover {
-  background-color: #777;
+.card {
+  background-color: #1e1e1e;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Estilos para snippets dentro dos cards */
-.card p, .card div {
-  line-height: 1.4;
+.status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.status.active,
+.status.active_ads {
+  background-color: #4caf50;
+  color: #121212;
+}
+
+.status.paused {
+  background-color: #f57c00;
+  color: #121212;
+}
+
+.status.inactive {
+  background-color: #d32f2f;
+  color: #fff;
 }
