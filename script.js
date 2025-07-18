@@ -1,4 +1,4 @@
-const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t"; // SEU TOKEN DE ACESSO DO GERENCIADOR DE ANÚNCIOS
+const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
 
 const contas = [
   { id: "507111372463621", name: "Conta 1" },
@@ -16,125 +16,158 @@ window.onload = () => {
   const tabs = document.querySelectorAll(".tab-button");
   const tabContents = document.querySelectorAll(".tab-content");
 
-  // Popula o seletor de contas
-  contas.forEach(conta => {
-    const option = document.createElement("option");
-    option.value = conta.id;
-    option.textContent = conta.name;
-    accountSelect.appendChild(option);
-  });
+  // Preenche select com contas
+  accountSelect.innerHTML = contas.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join("");
+  console.log("Contas carregadas no select");
 
-  // Define as datas padrão (últimos 7 dias)
-  const today = new Date();
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 7);
+  // Datas padrão últimos 7 dias
+  const hoje = new Date();
+  const semanaPassada = new Date(hoje);
+  semanaPassada.setDate(hoje.getDate() - 7);
+  startDateInput.value = semanaPassada.toISOString().slice(0, 10);
+  endDateInput.value = hoje.toISOString().slice(0, 10);
 
-  startDateInput.value = sevenDaysAgo.toISOString().split('T')[0];
-  endDateInput.value = today.toISOString().split('T')[0];
-
-  btnRefresh.addEventListener("click", carregarTudo);
-
+  // Troca abas
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active", "bg-green-600", "text-white"));
-      tabs.forEach(t => t.classList.add("bg-gray-700", "text-gray-200"));
-      tabContents.forEach(tc => tc.classList.remove("active"));
-
-      tab.classList.add("active", "bg-green-600", "text-white");
-      tab.classList.remove("bg-gray-700", "text-gray-200");
-      document.getElementById(tab.dataset.tab).classList.add("active");
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      tabContents.forEach(tc => {
+        tc.classList.remove("active");
+        if(tc.id === tab.dataset.tab) tc.classList.add("active");
+      });
     });
   });
 
-  // Carrega os dados iniciais
-  carregarTudo();
-
-  // --- Funções de Fetch da API ---
-
-  async function fetchAdAccounts() {
-    // Esta função é mais para fins de demonstração ou para expandir,
-    // pois as contas já estão hardcoded.
-    try {
-      const response = await fetch(
-        `https://graph.facebook.com/v19.0/me/adaccounts?fields=id,name&access_token=${TOKEN}`
-      );
-      const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
-      return data.data;
-    } catch (error) {
-      console.error("Erro ao buscar contas de anúncio:", error);
-      alert("Erro ao carregar contas de anúncio: " + error.message);
-      return [];
-    }
-  }
+  // --- Funções de busca na API ---
 
   async function fetchCampaigns(accountId, since, until) {
-    try {
-      const response = await fetch(
-        `https://graph.facebook.com/v19.0/act_${accountId}/campaigns?fields=id,name,status,effective_status,start_time,stop_time,insights.time_range({"since":"${since}","until":"${until}"}){impressions,clicks,spend,actions,ctr,cpc,cpm}&access_token=${TOKEN}`
-      );
-      const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
-      return data.data || [];
-    } catch (error) {
-      console.error("Erro ao buscar campanhas:", error);
-      throw error;
-    }
+    const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
+    urlCampaigns.searchParams.set("fields", "id,name,status,effective_status,start_time,stop_time");
+    urlCampaigns.searchParams.set("limit", "200");
+    urlCampaigns.searchParams.set("access_token", TOKEN);
+
+    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
+    urlInsights.searchParams.set("level", "campaign");
+    urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
+    urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
+    urlInsights.searchParams.set("limit", "500");
+    urlInsights.searchParams.set("access_token", TOKEN);
+
+    const [campRes, insightsRes] = await Promise.all([
+      fetch(urlCampaigns),
+      fetch(urlInsights)
+    ]);
+
+    const campData = await campRes.json();
+    const insightsData = await insightsRes.json();
+
+    if(campData.error) throw new Error(campData.error.message);
+    if(insightsData.error) throw new Error(insightsData.error.message);
+
+    const insightsMap = {};
+    (insightsData.data || []).forEach(i => {
+      insightsMap[i.campaign_id] = i;
+    });
+
+    return (campData.data || []).map(camp => ({
+      ...camp,
+      insights: insightsMap[camp.id] || {}
+    }));
   }
 
   async function fetchAdSets(accountId, since, until) {
-    try {
-      const response = await fetch(
-        `https://graph.facebook.com/v19.0/act_${accountId}/adsets?fields=id,name,status,daily_budget,start_time,end_time,insights.time_range({"since":"${since}","until":"${until}"}){impressions,clicks,spend,actions,ctr,cpc,cpm}&access_token=${TOKEN}`
-      );
-      const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
-      return data.data || [];
-    } catch (error) {
-      console.error("Erro ao buscar conjuntos de anúncios:", error);
-      throw error;
-    }
+    const urlAdsets = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/adsets`);
+    urlAdsets.searchParams.set("fields", "id,name,status,daily_budget,start_time,end_time");
+    urlAdsets.searchParams.set("limit", "200");
+    urlAdsets.searchParams.set("access_token", TOKEN);
+
+    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
+    urlInsights.searchParams.set("level", "adset");
+    urlInsights.searchParams.set("fields", "adset_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
+    urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
+    urlInsights.searchParams.set("limit", "500");
+    urlInsights.searchParams.set("access_token", TOKEN);
+
+    const [adsetsRes, insightsRes] = await Promise.all([
+      fetch(urlAdsets),
+      fetch(urlInsights)
+    ]);
+
+    const adsetsData = await adsetsRes.json();
+    const insightsData = await insightsRes.json();
+
+    if(adsetsData.error) throw new Error(adsetsData.error.message);
+    if(insightsData.error) throw new Error(insightsData.error.message);
+
+    const insightsMap = {};
+    (insightsData.data || []).forEach(i => {
+      insightsMap[i.adset_id] = i;
+    });
+
+    return (adsetsData.data || []).map(adset => ({
+      ...adset,
+      insights: insightsMap[adset.id] || {}
+    }));
   }
 
   async function fetchAds(accountId, since, until) {
-    try {
-      const response = await fetch(
-        `https://graph.facebook.com/v19.0/act_${accountId}/ads?fields=id,name,status,creative,insights.time_range({"since":"${since}","until":"${until}"}){impressions,clicks,spend,actions,ctr,cpc,cpm}&access_token=${TOKEN}`
-      );
-      const data = await response.json();
-      if (data.error) throw new Error(data.error.message);
-      return data.data || [];
-    } catch (error) {
-      console.error("Erro ao buscar anúncios:", error);
-      throw error;
-    }
+    const urlAds = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/ads`);
+    urlAds.searchParams.set("fields", "id,name,status,creative");
+    urlAds.searchParams.set("limit", "200");
+    urlAds.searchParams.set("access_token", TOKEN);
+
+    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
+    urlInsights.searchParams.set("level", "ad");
+    urlInsights.searchParams.set("fields", "ad_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
+    urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
+    urlInsights.searchParams.set("limit", "500");
+    urlInsights.searchParams.set("access_token", TOKEN);
+
+    const [adsRes, insightsRes] = await Promise.all([
+      fetch(urlAds),
+      fetch(urlInsights)
+    ]);
+
+    const adsData = await adsRes.json();
+    const insightsData = await insightsRes.json();
+
+    if(adsData.error) throw new Error(adsData.error.message);
+    if(insightsData.error) throw new Error(insightsData.error.message);
+
+    const insightsMap = {};
+    (insightsData.data || []).forEach(i => {
+      insightsMap[i.ad_id] = i;
+    });
+
+    return (adsData.data || []).map(ad => ({
+      ...ad,
+      insights: insightsMap[ad.id] || {}
+    }));
   }
 
-  // --- Funções de Formatação e Renderização ---
+  // --- Helpers de formatação ---
 
   function formatCurrency(value) {
     const num = Number(value);
     if (isNaN(num)) return "R$ 0,00";
     return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
-
   function formatDate(dateStr) {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
     return d.toLocaleDateString("pt-BR");
   }
-
   function renderStatus(status) {
-    if (!status) return "";
+    if(!status) return "";
     status = status.toLowerCase();
     let cls = "";
-    if (status.includes("active") || status.includes("on")) cls = "active";
-    else if (status.includes("paused")) cls = "paused";
-    else if (status.includes("inactive") || status.includes("off")) cls = "inactive";
-    else cls = "inactive"; // Default para outros status não mapeados
-    return `<span class="status ${cls}">${status.replace(/_/g, ' ')}</span>`; // Substitui underscores por espaços
+    if(status.includes("active")) cls = "active";
+    else if(status.includes("paused")) cls = "paused";
+    else if(status.includes("inactive")) cls = "inactive";
+    else cls = "inactive";
+    return `<span class="status ${cls}">${status}</span>`;
   }
-
   function renderActions(actions) {
     if (!actions || !actions.length) return "<em>Sem ações registradas</em>";
     const labels = {
@@ -145,40 +178,35 @@ window.onload = () => {
       "purchase": "Compras",
       "view_content": "Visualizações",
       "add_to_cart": "Adicionados ao Carrinho",
-      "initiate_checkout": "Inícios de Checkout",
-      // Adicione mais tipos de ações conforme necessário
+      "initiate_checkout": "Inícios de Checkout"
     };
     return actions.map(a => `<p>• ${labels[a.action_type] || a.action_type}: ${a.value}</p>`).join("");
   }
+
+  // --- Renderização das abas ---
 
   function renderCampaigns(campaigns) {
     const container = document.getElementById("campanhas");
     container.innerHTML = "";
 
     if (!campaigns.length) {
-      container.innerHTML = "<p class='text-gray-400 text-center col-span-full'>Nenhuma campanha encontrada para o período.</p>";
+      container.innerHTML = "<p>Nenhuma campanha encontrada para o período.</p>";
       return;
     }
-
-    const accountId = accountSelect.value;
-    const since = startDateInput.value;
-    const until = endDateInput.value;
 
     campaigns.forEach(c => {
       const ins = c.insights || {};
       container.innerHTML += `
-        <a href="details.html?type=campaign&id=${c.id}&accountId=${accountId}&since=${since}&until=${until}" class="card-link block transform transition duration-300 hover:scale-105">
-          <div class="card bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-600">
-            <h3 class="text-xl font-bold mb-2 text-green-300">${c.name}</h3>
-            <p>${renderStatus(c.status)} ${renderStatus(c.effective_status)}</p>
-            <p class="text-sm text-gray-400 mt-2"><strong>Início:</strong> ${formatDate(c.start_time)}</p>
-            <p class="text-sm text-gray-400"><strong>Fim:</strong> ${formatDate(c.stop_time)}</p>
-            <p class="mt-3"><strong>Impressões:</strong> ${ins.impressions || 0}</p>
-            <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
-            <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-            <div class="text-sm mt-2">${renderActions(ins.actions)}</div>
-          </div>
-        </a>
+        <div class="card">
+          <h3>${c.name}</h3>
+          ${renderStatus(c.status)} ${renderStatus(c.effective_status)}
+          <p><strong>Início:</strong> ${formatDate(c.start_time)}</p>
+          <p><strong>Fim:</strong> ${formatDate(c.stop_time)}</p>
+          <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
+          <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
+          <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
+          <div>${renderActions(ins.actions)}</div>
+        </div>
       `;
     });
   }
@@ -188,30 +216,24 @@ window.onload = () => {
     container.innerHTML = "";
 
     if (!adsets.length) {
-      container.innerHTML = "<p class='text-gray-400 text-center col-span-full'>Nenhum conjunto de anúncios encontrado para o período.</p>";
+      container.innerHTML = "<p>Nenhum conjunto de anúncios encontrado para o período.</p>";
       return;
     }
-
-    const accountId = accountSelect.value;
-    const since = startDateInput.value;
-    const until = endDateInput.value;
 
     adsets.forEach(a => {
       const ins = a.insights || {};
       container.innerHTML += `
-        <a href="details.html?type=adset&id=${a.id}&accountId=${accountId}&since=${since}&until=${until}" class="card-link block transform transition duration-300 hover:scale-105">
-          <div class="card bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-600">
-            <h3 class="text-xl font-bold mb-2 text-green-300">${a.name}</h3>
-            <p>${renderStatus(a.status)}</p>
-            <p class="text-sm text-gray-400 mt-2"><strong>Início:</strong> ${formatDate(a.start_time)}</p>
-            <p class="text-sm text-gray-400"><strong>Fim:</strong> ${formatDate(a.end_time)}</p>
-            <p><strong>Orçamento diário:</strong> ${formatCurrency((a.daily_budget || 0)/100)}</p>
-            <p class="mt-3"><strong>Impressões:</strong> ${ins.impressions || 0}</p>
-            <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
-            <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-            <div class="text-sm mt-2">${renderActions(ins.actions)}</div>
-          </div>
-        </a>
+        <div class="card">
+          <h3>${a.name}</h3>
+          ${renderStatus(a.status)}
+          <p><strong>Início:</strong> ${formatDate(a.start_time)}</p>
+          <p><strong>Fim:</strong> ${formatDate(a.end_time)}</p>
+          <p><strong>Orçamento diário:</strong> ${formatCurrency((a.daily_budget || 0)/100)}</p>
+          <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
+          <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
+          <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
+          <div>${renderActions(ins.actions)}</div>
+        </div>
       `;
     });
   }
@@ -221,13 +243,9 @@ window.onload = () => {
     container.innerHTML = "";
 
     if (!ads.length) {
-      container.innerHTML = "<p class='text-gray-400 text-center col-span-full'>Nenhum anúncio encontrado para o período.</p>";
+      container.innerHTML = "<p>Nenhum anúncio encontrado para o período.</p>";
       return;
     }
-
-    const accountId = accountSelect.value;
-    const since = startDateInput.value;
-    const until = endDateInput.value;
 
     ads.forEach(a => {
       const ins = a.insights || {};
@@ -239,19 +257,17 @@ window.onload = () => {
       const cpmFormatado = !isNaN(cpm) ? formatCurrency(cpm) : formatCurrency(0);
 
       container.innerHTML += `
-        <a href="details.html?type=ad&id=${a.id}&accountId=${accountId}&since=${since}&until=${until}" class="card-link block transform transition duration-300 hover:scale-105">
-          <div class="card bg-gray-700 p-4 rounded-lg shadow-md hover:bg-gray-600">
-            <h3 class="text-xl font-bold mb-2 text-green-300">${a.name}</h3>
-            <p>${renderStatus(a.status)}</p>
-            <p class="mt-3"><strong>Impressões:</strong> ${ins.impressions || 0}</p>
-            <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
-            <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
-            <p><strong>CTR:</strong> ${ctrFormatada}%</p>
-            <p><strong>CPC:</strong> ${cpcFormatado}</p>
-            <p><strong>CPM:</strong> ${cpmFormatado}</p>
-            <div class="text-sm mt-2">${renderActions(ins.actions)}</div>
-          </div>
-        </a>
+        <div class="card">
+          <h3>${a.name}</h3>
+          ${renderStatus(a.status)}
+          <p><strong>Impressões:</strong> ${ins.impressions || 0}</p>
+          <p><strong>Cliques:</strong> ${ins.clicks || 0}</p>
+          <p><strong>Gasto:</strong> ${formatCurrency(ins.spend || 0)}</p>
+          <p><strong>CTR:</strong> ${ctrFormatada}%</p>
+          <p><strong>CPC:</strong> ${cpcFormatado}</p>
+          <p><strong>CPM:</strong> ${cpmFormatado}</p>
+          <div>${renderActions(ins.actions)}</div>
+        </div>
       `;
     });
   }
@@ -267,7 +283,7 @@ window.onload = () => {
     if (!since || !until) return alert("Selecione as datas inicial e final.");
 
     ["campanhas", "adsets", "ads"].forEach(id => {
-      document.getElementById(id).innerHTML = "<p class='text-gray-400 text-center col-span-full'>Carregando...</p>";
+      document.getElementById(id).innerHTML = "<p>Carregando...</p>";
     });
 
     try {
@@ -282,9 +298,15 @@ window.onload = () => {
       renderAds(ads);
     } catch (error) {
       ["campanhas", "adsets", "ads"].forEach(id => {
-        document.getElementById(id).innerHTML = `<p style="color:#f44336" class='text-center col-span-full'>Erro: ${error.message}</p>`;
+        document.getElementById(id).innerHTML = `<p style="color:#f44336">Erro: ${error.message}</p>`;
       });
-      console.error("Erro ao carregar dados:", error);
     }
   }
+
+  // Eventos
+  accountSelect.addEventListener("change", carregarTudo);
+  btnRefresh.addEventListener("click", carregarTudo);
+
+  // Carregamento inicial
+  carregarTudo();
 };
