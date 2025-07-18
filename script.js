@@ -4,99 +4,278 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Para uso pessoal e local, é aceitável. Para hospedagem online,
     // considere usar um backend para proteger seu token.
     const ACCESS_TOKEN = 'EAAIyWkoZCTyQBPAp1pBdNgbAUvTU8je3xvRCy2RaPRJhz0So577pnZAHHB3ZBP9Nlt8JKnG1d1okylZAU39L5sEkAoAZBmyyP4ZBF9MZCAUtTz4znZBrgWvCesnz5JQLjjDHeHrnL7LVtTLZCGuqBZB4Q3Nm1570rfRVvRzyWI9yuUTuZCUJELv2ksWTOaaXbZAAAH7ZAM5mqmCDIFro0Hi7RCqcH';
-    // O ID da sua conta de anúncios, prefixado com 'act_'.
-    const AD_ACCOUNT_ID = 'act_1421566932486575';
+
+    // IDs das suas contas de anúncios. Adicione todos os IDs que você deseja monitorar aqui.
+    // Certifique-se de que seu Token de Acesso tem permissões para todas essas contas.
+    const AD_ACCOUNT_IDS = [
+        { id: 'act_1073555467565665', name: 'Conta de Anúncios 1' },
+        { id: 'act_1421566932486575', name: 'Conta de Anúncios 2' }, // Seu ID anterior
+        { id: 'act_507111372463621', name: 'Conta de Anúncios 3' },
+        { id: 'act_735462832220538', name: 'Conta de Anúncios 4' },
+        { id: 'act_1767547067979139', name: 'Conta de Anúncios 5' }
+    ];
     // --- FIM DOS SEUS DADOS DE ACESSO ---
 
+    // Elementos do DOM
+    const adAccountSelect = document.getElementById('adAccountSelect');
     const totalSpendElement = document.getElementById('totalSpend');
-    const campaignsListElement = document.getElementById('campaignsList');
+    const totalRoasElement = document.getElementById('totalRoas');
+    const totalPurchasesElement = document.getElementById('totalPurchases');
+    const totalConversionValueElement = document.getElementById('totalConversionValue');
+    const insightsDisplayElement = document.getElementById('insightsDisplay');
+    const filterButtons = document.querySelectorAll('.filter-button');
+    const incrementButtons = document.querySelectorAll('.increment-button');
+
+    let currentSelectedAccountId = AD_ACCOUNT_IDS[0].id; // Define a primeira conta como padrão
+    let currentTimeRange = 'today'; // Define 'today' como período padrão
+    let currentTimeIncrement = 'daily'; // Define 'daily' como agrupamento padrão
 
     // Função para formatar valores monetários para Real Brasileiro (BRL)
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
-            currency: 'BRL', // Define a moeda como Real Brasileiro
+            currency: 'BRL',
         }).format(value);
     };
 
-    // Função principal para carregar e exibir os dados
-    const loadMetaAdsData = async () => {
-        try {
-            // Define o estado inicial de carregamento
-            totalSpendElement.textContent = 'Carregando...';
-            campaignsListElement.innerHTML = '<p>Carregando campanhas...</p>';
+    // Função para formatar ROAS como porcentagem ou número
+    const formatRoas = (value) => {
+        if (value === null || isNaN(value)) return 'N/A';
+        return value.toFixed(2); // Formata para 2 casas decimais
+    };
 
-            // 1. Constrói a URL para a API Graph do Meta
-            // Adicionado 'daily_budget' aos campos solicitados.
-            // Para ROAS, compras e valor da conversão, você precisaria consultar o endpoint /insights
-            // Exemplo (apenas para referência, não implementado aqui):
-            // `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/insights?fields=spend,actions,action_values&time_range={'since':'YYYY-MM-DD','until':'YYYY-MM-DD'}&level=campaign&access_token=${ACCESS_TOKEN}`
-            const apiUrl = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/campaigns?fields=name,spend,daily_budget&limit=100&access_token=${ACCESS_TOKEN}`;
+    // Preenche o dropdown de contas de anúncios
+    const populateAdAccountSelect = () => {
+        adAccountSelect.innerHTML = ''; // Limpa opções existentes
+        AD_ACCOUNT_IDS.forEach(account => {
+            const option = document.createElement('option');
+            option.value = account.id;
+            option.textContent = account.name;
+            adAccountSelect.appendChild(option);
+        });
+        adAccountSelect.value = currentSelectedAccountId; // Seleciona a conta padrão
+    };
+
+    // Função para obter a data no formato YYYY-MM-DD
+    const getDateString = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    // Função para calcular o período de tempo com base na seleção
+    const getTimeRangeDates = (range) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Zera hora para consistência
+
+        let sinceDate, untilDate;
+
+        switch (range) {
+            case 'today':
+                sinceDate = today;
+                untilDate = today;
+                break;
+            case 'yesterday':
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                sinceDate = yesterday;
+                untilDate = yesterday;
+                break;
+            case 'last_7_days':
+                untilDate = today;
+                const sevenDaysAgo = new Date(today);
+                sevenDaysAgo.setDate(today.getDate() - 6); // Inclui hoje, então 6 dias atrás
+                sinceDate = sevenDaysAgo;
+                break;
+            default: // Padrão para hoje
+                sinceDate = today;
+                untilDate = today;
+        }
+
+        return {
+            since: getDateString(sinceDate),
+            until: getDateString(untilDate)
+        };
+    };
+
+    // Função principal para carregar e exibir os dados do Meta Ads
+    const loadMetaAdsData = async () => {
+        // Define o estado inicial de carregamento para todas as métricas e display
+        totalSpendElement.textContent = 'Carregando...';
+        totalRoasElement.textContent = 'Carregando...';
+        totalPurchasesElement.textContent = 'Carregando...';
+        totalConversionValueElement.textContent = 'Carregando...';
+        insightsDisplayElement.innerHTML = '<p>Carregando dados...</p>';
+
+        try {
+            const { since, until } = getTimeRangeDates(currentTimeRange);
+
+            // 1. Constrói a URL para a API Graph do Meta (endpoint /insights)
+            // Campos solicitados:
+            // - campaign_name: Nome da campanha
+            // - spend: Gasto
+            // - actions: Array de ações (inclui compras, leads, etc.)
+            // - action_values: Array de valores de ações (valor das compras, etc.)
+            // - roas: Retorno sobre o gasto com anúncios
+            // time_range: Define o período (data de início e fim)
+            // time_increment: Define o agrupamento (daily, hourly)
+            // level: Define o nível de detalhe (account, campaign, adset, ad). Usaremos 'campaign' para ver os detalhes por campanha.
+            const apiUrl = `https://graph.facebook.com/v19.0/${currentSelectedAccountId}/insights?` +
+                           `fields=campaign_name,spend,actions,action_values,roas&` +
+                           `time_range={'since':'${since}','until':'${until}'}&` +
+                           `time_increment=${currentTimeIncrement}&` +
+                           `level=campaign&` + // Nível da campanha para ver os detalhes por campanha
+                           `access_token=${ACCESS_TOKEN}`;
 
             // 2. Faz a requisição HTTP para a API do Meta
-            const campaignsResponse = await fetch(apiUrl);
+            const response = await fetch(apiUrl);
 
             // 3. Verifica se a resposta da requisição foi bem-sucedida (status 200 OK)
-            if (!campaignsResponse.ok) {
-                // Se a resposta não for OK, tenta extrair a mensagem de erro do Meta
-                const errorData = await campaignsResponse.json();
-                // Lança um erro com a mensagem da API para ser capturado pelo bloco catch
+            if (!response.ok) {
+                const errorData = await response.json();
                 throw new Error(`Erro da API Meta: ${errorData.error.message} (Código: ${errorData.error.code})`);
             }
 
             // 4. Converte a resposta para JSON
-            const campaignsData = await campaignsResponse.json();
-            const campaigns = campaignsData.data; // Os dados das campanhas estão na propriedade 'data'
+            const data = await response.json();
+            const insights = data.data; // Os dados de insights estão na propriedade 'data'
 
-            // 5. Inicializa o gasto total
+            // Inicializa totais
             let totalSpend = 0;
+            let totalPurchases = 0;
+            let totalConversionValue = 0;
+            let totalRoasSum = 0;
+            let roasCount = 0; // Para calcular a média do ROAS
 
-            // Limpa a lista de campanhas para adicionar os novos dados
-            campaignsListElement.innerHTML = '';
+            insightsDisplayElement.innerHTML = ''; // Limpa o display anterior
 
-            // 6. Processa os dados das campanhas
-            if (campaigns && campaigns.length > 0) {
-                campaigns.forEach(campaign => {
-                    // Converte o gasto da campanha para um número (pode vir como string)
-                    // Usa '0' se o gasto for nulo ou indefinido
-                    const spend = parseFloat(campaign.spend || 0);
-                    totalSpend += spend;
+            if (insights && insights.length > 0) {
+                // Iterar sobre cada insight (que pode ser por dia ou hora)
+                insights.forEach(insight => {
+                    // Agrega os totais do período
+                    totalSpend += parseFloat(insight.spend || 0);
 
-                    // Obtém o orçamento diário, se disponível
-                    const dailyBudget = parseFloat(campaign.daily_budget || 0);
-                    const dailyBudgetDisplay = dailyBudget > 0 ? ` (Orçamento Diário: ${formatCurrency(dailyBudget)})` : '';
+                    // Processa ações e valores de ações
+                    if (insight.actions) {
+                        insight.actions.forEach(action => {
+                            if (action.action_type === 'purchase') {
+                                totalPurchases += parseFloat(action.value || 0);
+                            }
+                        });
+                    }
+                    if (insight.action_values) {
+                        insight.action_values.forEach(actionValue => {
+                            if (actionValue.action_type === 'purchase') {
+                                totalConversionValue += parseFloat(actionValue.value || 0);
+                            }
+                        });
+                    }
 
-                    // Cria um elemento HTML para cada campanha e adiciona à lista
-                    const campaignItem = document.createElement('div');
-                    campaignItem.classList.add('campaign-item'); // Adiciona a classe CSS para estilização
-                    campaignItem.innerHTML = `
-                        <strong>${campaign.name}</strong>
-                        <span>${formatCurrency(spend)}${dailyBudgetDisplay}</span>
-                    `;
-                    campaignsListElement.appendChild(campaignItem);
+                    // Agrega ROAS para cálculo da média
+                    if (insight.roas && insight.roas.length > 0) {
+                        // O ROAS pode vir como um array de objetos, pegamos o primeiro 'value'
+                        const roasValue = parseFloat(insight.roas[0].value || 0);
+                        if (roasValue > 0) { // Apenas inclui ROAS válidos na média
+                            totalRoasSum += roasValue;
+                            roasCount++;
+                        }
+                    }
+
+                    // Exibe os detalhes por dia/hora/campanha
+                    const insightItem = document.createElement('div');
+                    insightItem.classList.add('insight-item');
+
+                    let itemContent = `<strong>Período: ${insight.date_start} ${currentTimeIncrement === 'hourly' ? `Hora: ${insight.date_stop.substring(11, 16)}` : ''}</strong><br>`;
+                    itemContent += `<div class="label">Campanha:</div><span>${insight.campaign_name || 'N/A'}</span>`;
+                    itemContent += `<div class="label">Gasto:</div><span>${formatCurrency(parseFloat(insight.spend || 0))}</span>`;
+
+                    // Detalhes de compras para este insight específico
+                    let itemPurchases = 0;
+                    let itemConversionValue = 0;
+                    if (insight.actions) {
+                        insight.actions.forEach(action => {
+                            if (action.action_type === 'purchase') {
+                                itemPurchases += parseFloat(action.value || 0);
+                            }
+                        });
+                    }
+                    if (insight.action_values) {
+                        insight.action_values.forEach(actionValue => {
+                            if (actionValue.action_type === 'purchase') {
+                                itemConversionValue += parseFloat(actionValue.value || 0);
+                            }
+                        });
+                    }
+                    itemContent += `<div class="label">Compras:</div><span>${itemPurchases.toFixed(0)}</span>`;
+                    itemContent += `<div class="label">Valor Conversão:</div><span>${formatCurrency(itemConversionValue)}</span>`;
+                    itemContent += `<div class="label">ROAS:</div><span>${formatRoas(insight.roas && insight.roas.length > 0 ? parseFloat(insight.roas[0].value) : null)}</span>`;
+
+                    insightItem.innerHTML = itemContent;
+                    insightsDisplayElement.appendChild(insightItem);
                 });
-                // Atualiza o elemento HTML com o gasto total formatado
+
+                // Atualiza as métricas totais no topo do dashboard
                 totalSpendElement.textContent = formatCurrency(totalSpend);
+                totalPurchasesElement.textContent = totalPurchases.toFixed(0); // Compras geralmente são números inteiros
+                totalConversionValueElement.textContent = formatCurrency(totalConversionValue);
+                totalRoasElement.textContent = roasCount > 0 ? formatRoas(totalRoasSum / roasCount) : 'N/A';
+
             } else {
-                // Se nenhuma campanha for encontrada
-                campaignsListElement.innerHTML = '<p>Nenhuma campanha encontrada ou dados indisponíveis.</p>';
-                totalSpendElement.textContent = formatCurrency(0); // Exibe 0 se não houver gastos
+                insightsDisplayElement.innerHTML = '<p>Nenhum dado encontrado para o período e conta selecionados.</p>';
+                totalSpendElement.textContent = formatCurrency(0);
+                totalRoasElement.textContent = 'N/A';
+                totalPurchasesElement.textContent = '0';
+                totalConversionValueElement.textContent = formatCurrency(0);
             }
 
         } catch (error) {
-            // Captura e exibe qualquer erro que ocorra durante o processo
             console.error('Erro ao carregar dados do Meta Ads:', error);
-            totalSpendElement.textContent = 'Erro ao carregar';
-            campaignsListElement.innerHTML = `
+            totalSpendElement.textContent = 'Erro';
+            totalRoasElement.textContent = 'Erro';
+            totalPurchasesElement.textContent = 'Erro';
+            totalConversionValueElement.textContent = 'Erro';
+            insightsDisplayElement.innerHTML = `
                 <p style="color: red; padding: 10px; border: 1px solid red; border-radius: 5px;">
                     Ocorreu um erro ao carregar os dados: ${error.message}.
-                    Por favor, verifique seu Token de Acesso e o ID da Conta de Anúncios.
-                    Certifique-se de que o token tem as permissões corretas (ads_read, ads_management).
+                    Por favor, verifique seu Token de Acesso, ID da(s) Conta(s) de Anúncios
+                    e as permissões necessárias (ads_read, ads_management).
                 </p>
             `;
         }
     };
 
-    // Chama a função para carregar os dados quando a página for carregada
-    loadMetaAdsData();
+    // --- Event Listeners para os Controles ---
+
+    // Evento para mudança de conta de anúncio
+    adAccountSelect.addEventListener('change', (event) => {
+        currentSelectedAccountId = event.target.value;
+        loadMetaAdsData(); // Recarrega os dados com a nova conta
+    });
+
+    // Eventos para botões de filtro de período (Hoje, Ontem, Últimos 7 Dias)
+    filterButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Remove a classe 'active' de todos os botões e adiciona ao clicado
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            currentTimeRange = event.target.dataset.timeRange;
+            loadMetaAdsData(); // Recarrega os dados com o novo período
+        });
+    });
+
+    // Eventos para botões de agrupamento (Por Dia, Por Hora)
+    incrementButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Remove a classe 'active' de todos os botões e adiciona ao clicado
+            incrementButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            currentTimeIncrement = event.target.dataset.timeIncrement;
+            loadMetaAdsData(); // Recarrega os dados com o novo agrupamento
+        });
+    });
+
+    // Inicializa o dashboard ao carregar a página
+    populateAdAccountSelect(); // Preenche o dropdown de contas
+    loadMetaAdsData(); // Carrega os dados iniciais
 });
