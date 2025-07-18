@@ -1,329 +1,119 @@
-:root {
-  /* Cores */
-  --bg-dark: #1a1a2e; /* Fundo mais escuro e suave */
-  --bg-card: #20203a; /* Fundo do card */
-  --text-light: #e0e0e0; /* Texto claro */
-  --text-medium: #b0b0d0; /* Texto médio para detalhes */
-  --primary-green: #4CAF50; /* Verde principal para sucesso */
-  --primary-green-dark: #388E3C; /* Verde escuro para hover */
-  --accent-blue: #00bcd4; /* Azul ciano para acentuar (ex: ícones, foco) */
-  --status-active: #4caf50;
-  --status-paused: #ff9800;
-  --status-inactive: #f44336;
-  --border-color: #3a3a5a; /* Borda mais suave */
+/* style.css */
 
-  /* Espaçamento */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-
-  /* Bordas */
-  --border-radius-sm: 4px;
-  --border-radius-md: 8px;
-}
-
+/* Remove estilos padrão que podem conflitar com Tailwind ou que Tailwind já cobre */
 body {
-  background-color: var(--bg-dark);
-  color: var(--text-light);
-  font-family: 'Inter', sans-serif; /* Usando a nova fonte */
-  margin: 0;
-  padding: var(--spacing-lg);
-  line-height: 1.6;
+  /* background-color e cor do texto são definidos no body do HTML com Tailwind */
+  /* font-family, margin, padding são definidos no body do HTML com Tailwind */
 }
 
 .container {
-  max-width: 1000px; /* Um pouco mais largo */
-  margin: 0 auto;
-  padding: var(--spacing-md);
+  /* max-width, margin, padding são definidos no container do HTML com Tailwind */
 }
 
 h1 {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
-  color: var(--primary-green);
-  font-weight: 700;
-  font-size: 2.5rem;
-}
-
-/* KPIs Summary */
-.kpi-summary {
-  background-color: var(--bg-card);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Layout responsivo */
-  gap: var(--spacing-md);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.kpi-item {
-  text-align: center;
-  padding: var(--spacing-sm);
-  border-right: 1px solid var(--border-color); /* Separador sutil */
-}
-
-.kpi-item:last-child {
-  border-right: none;
-}
-
-.kpi-label {
-  font-size: 0.9rem;
-  color: var(--text-medium);
-  margin-bottom: var(--spacing-xs);
-}
-
-.kpi-value {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--accent-blue);
-}
-
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-md); /* Espaçamento mais consistente */
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--spacing-xl);
-  background-color: var(--bg-card);
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
+  /* text-align, margin-bottom, color são definidos no h1 do HTML com Tailwind */
 }
 
 .filters label {
-  font-weight: 600;
-  color: var(--text-light);
-  white-space: nowrap; /* Evita quebra de linha em labels */
+  font-weight: 600; /* Tailwind usa font-semibold para isso */
+  /* margin-right e display flex/gap são definidos no filters do HTML com Tailwind */
 }
 
 .filters select,
 .filters input[type="date"] {
-  background-color: var(--bg-dark);
-  border: 1px solid var(--border-color);
-  color: var(--text-light);
-  padding: var(--spacing-sm) var(--spacing-sm); /* Padding uniforme */
-  border-radius: var(--border-radius-sm);
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.filters select:focus,
-.filters input[type="date"]:focus {
-  outline: none;
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.3); /* Brilho no foco */
+  /* Estilos são definidos nos inputs do HTML com Tailwind */
 }
 
 .filters button {
-  background-color: var(--primary-green);
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  color: var(--bg-dark); /* Texto escuro para contraste */
-  font-weight: 700;
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.1s ease;
-  display: flex; /* Para alinhar ícone e texto */
-  align-items: center;
-  gap: var(--spacing-xs);
+  /* Estilos são definidos nos buttons do HTML com Tailwind */
 }
 
 .filters button:hover {
-  background-color: var(--primary-green-dark);
-  transform: translateY(-1px); /* Efeito sutil ao passar o mouse */
-}
-
-.filters button:active {
-  transform: translateY(0);
+  /* Estilos de hover são definidos nos buttons do HTML com Tailwind */
 }
 
 .tabs {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--spacing-lg);
-  gap: var(--spacing-md);
+  /* display, justify-content, margin-bottom, gap são definidos no tabs do HTML com Tailwind */
 }
 
 .tab-button {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  color: var(--text-medium);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  flex-grow: 1; /* Para ocupar espaço igual */
-  max-width: 200px; /* Limite para não ficarem muito largos */
-}
-
-.tab-button:hover {
-  background-color: rgba(var(--primary-green-dark), 0.1); /* Um toque do verde no hover */
-  color: var(--text-light);
+  /* background-color, border, color, padding, border-radius, cursor, font-weight, transition são definidos nos buttons do HTML com Tailwind */
 }
 
 .tab-button.active {
-  background-color: var(--primary-green);
-  color: var(--bg-dark);
-  border-color: var(--primary-green);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  /* background-color, color, border são definidos nos buttons do HTML com Tailwind */
+  /* Garante que o botão ativo não tenha borda se desejar (Tailwind pode sobrescrever) */
+  border-color: transparent;
 }
 
 .tab-content {
   display: none;
+  /* grid, grid-cols, gap são definidos no tab-content do HTML com Tailwind */
 }
 
 .tab-content.active {
-  display: block;
+  display: grid; /* Volta a ser grid quando ativo */
+}
+
+/* Estilos para os cards */
+.card-link {
+  text-decoration: none; /* Remove o sublinhado padrão dos links */
+  color: inherit; /* Garante que a cor do texto seja herdada */
 }
 
 .card {
-  background-color: var(--bg-card);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra mais suave e com mais profundidade */
-  border: 1px solid var(--border-color);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /* background-color, padding, border-radius, shadow são definidos nos cards do HTML com Tailwind */
+  /* hover:bg-gray-600 também está no HTML */
+  transition: all 0.3s ease; /* Transição para o hover */
 }
 
-.card:hover {
-  transform: translateY(-3px); /* Efeito de levitação sutil */
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-}
-
-.card h3 {
-  margin-top: 0;
-  margin-bottom: var(--spacing-sm);
-  color: var(--text-light);
-  font-size: 1.3rem;
-  border-bottom: 1px solid var(--border-color); /* Linha divisória */
-  padding-bottom: var(--spacing-xs);
-}
-
-.card p {
-  margin-bottom: var(--spacing-xs);
-  font-size: 0.95rem;
-  color: var(--text-medium);
-}
-
-.card p strong {
-  color: var(--text-light);
-}
-
+/* Estilos de status */
 .status {
-  display: inline-block;
-  padding: 3px var(--spacing-sm);
-  border-radius: var(--border-radius-md); /* Mais arredondado */
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-right: var(--spacing-xs); /* Espaçamento entre status */
-  margin-bottom: var(--spacing-sm);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  margin-left: 5px;
+  white-space: nowrap; /* Evita quebra de linha em tags de status */
 }
 
-.status.active,
-.status.active_ads {
-  background-color: var(--status-active);
-  color: var(--bg-dark);
+.status.active {
+  background-color: #38a169; /* green-600 do Tailwind */
+  color: white;
 }
 
 .status.paused {
-  background-color: var(--status-paused);
-  color: var(--bg-dark);
+  background-color: #f6ad55; /* orange-400 do Tailwind */
+  color: #333;
 }
 
-.status.inactive,
-.status.archived, /* Adicionando mais status comuns */
-.status.campaign_paused {
-  background-color: var(--status-inactive);
-  color: var(--text-light);
+.status.inactive {
+  background-color: #e53e3e; /* red-600 do Tailwind */
+  color: white;
 }
 
-.status.completed {
-  background-color: var(--accent-blue);
-  color: var(--bg-dark);
+/* Estilos para o botão "Voltar" na página de detalhes */
+.back-button {
+  background-color: #555;
+  border: none;
+  padding: 10px 20px;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+  display: block;
+  width: fit-content;
+  text-decoration: none; /* Para garantir que não haja sublinhado se for um link */
 }
 
-/* Indicadores de carregamento e erro */
-.global-loading, .global-error {
-  text-align: center;
-  padding: var(--spacing-md);
-  margin-top: var(--spacing-xl);
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: var(--border-radius-md);
-  display: none; /* Inicia oculto */
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
+.back-button:hover {
+  background-color: #777;
 }
 
-.global-loading {
-  background-color: rgba(var(--accent-blue), 0.1);
-  color: var(--accent-blue);
-  border: 1px solid rgba(var(--accent-blue), 0.3);
-}
-
-.global-error {
-  background-color: rgba(var(--status-inactive), 0.1);
-  color: var(--status-inactive);
-  border: 1px solid rgba(var(--status-inactive), 0.3);
-}
-
-.global-loading.show, .global-error.show {
-  display: flex;
-}
-
-/* Responsividade Básica */
-@media (max-width: 768px) {
-  .filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-group {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%; /* Ocupa a largura total */
-  }
-
-  .filters select,
-  .filters input[type="date"],
-  .filters button {
-    width: 100%;
-    box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
-  }
-
-  .kpi-summary {
-    grid-template-columns: 1fr; /* Em telas menores, uma coluna */
-  }
-
-  .kpi-item {
-    border-right: none;
-    border-bottom: 1px solid var(--border-color); /* Separador vertical */
-    padding-bottom: var(--spacing-sm);
-  }
-  .kpi-item:last-child {
-    border-bottom: none;
-  }
-
-  .tabs {
-    flex-direction: column; /* Botões de aba empilhados */
-  }
-  .tab-button {
-    max-width: 100%;
-  }
+/* Estilos para snippets dentro dos cards */
+.card p, .card div {
+  line-height: 1.4;
 }
