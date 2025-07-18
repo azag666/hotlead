@@ -1,72 +1,463 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark h-full">
+<html lang="pt-BR" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HotLead Dashboard - Campanhas</title>
+    <title>HotLead Dashboard - Visualização Profissional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Garante que o html, body e o root ocupem 100% da altura para layouts flexíveis */
+        html, body, #root {
+            height: 100%;
+        }
+        /* Estilos adicionais para melhorar a legibilidade de texto truncado */
+        .truncate-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Estilos de transição para o dark mode toggle */
+        #darkModeToggle.spin-active {
+            animation: spin 0.5s forwards;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Estilos para o ícone de atualização */
+        .group:hover .rotate-on-hover {
+            transform: rotate(360deg);
+            transition: transform 0.5s ease-in-out;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans transition-colors duration-300 min-h-screen flex flex-col">
-    <header class="bg-gray-800 text-white p-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-green-400">HotLead Dashboard</h1>
-            <nav>
-                <ul class="flex space-x-6">
-                    <li><a href="#" class="nav-link"><i class="fas fa-chart-line nav-icon"></i> Dashboard</a></li>
-                    <li><a href="#" class="nav-link"><i class="fas fa-dollar-sign nav-icon"></i> Vendas</a></li>
-                    <li><a href="#" class="nav-link"><i class="fas fa-users nav-icon"></i> Modelos</a></li>
-                    <li><a href="#" class="nav-link active"><i class="fas fa-bullhorn nav-icon"></i> Campanhas</a></li>
-                    <li><a href="#" class="nav-link"><i class="fas fa-trophy nav-icon"></i> Conquistas</a></li>
-                    <li><a href="#" class="nav-link"><i class="fas fa-plug nav-icon"></i> Integrações</a></li>
-                    <li><a href="#" class="nav-link"><i class="fas fa-plus-circle nav-icon"></i> Criar Checkout</a></li>
-                </ul>
-            </nav>
-            <button id="darkModeToggle" class="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full transition-colors duration-300">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-    </header>
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+    <div id="root" class="min-h-full flex flex-col"></div>
 
-    <main class="container mx-auto p-6 flex-grow">
-        <h2 class="text-3xl font-extrabold text-center mb-8 text-green-400">Visão Geral de Campanhas</h2>
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
 
-        <div class="filters-card bg-gray-800 p-6 rounded-lg shadow-xl mb-8 flex flex-wrap items-center justify-center gap-6">
-            <div class="filter-group">
-                <label for="accountSelect" class="block text-gray-300 text-sm font-medium mb-1">Conta de Anúncio:</label>
-                <div class="relative">
-                    <select id="accountSelect" class="filter-select appearance-none bg-gray-700 border border-gray-600 text-white py-2 px-4 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
-                        </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+        // Componente de Cabeçalho (Header)
+        function Header({ onNavigate, currentPage, toggleDarkMode, isDarkMode }) {
+            const [isSpinning, setIsSpinning] = useState(false);
+
+            const handleToggleClick = () => {
+                setIsSpinning(true);
+                toggleDarkMode();
+            };
+
+            const handleAnimationEnd = () => {
+                setIsSpinning(false);
+            };
+
+            return (
+                <header className="bg-gray-800 dark:bg-gray-800 text-white p-4 shadow-md dark:shadow-lg dark:border-b dark:border-gray-700">
+                    <div className="container mx-auto flex flex-wrap justify-between items-center">
+                        <h1 className="text-2xl font-bold text-green-400">HotLead Dashboard</h1>
+                        <nav className="mt-4 md:mt-0">
+                            <ul className="flex flex-wrap space-x-2 md:space-x-6 justify-center">
+                                <li><a href="#" onClick={() => onNavigate('dashboard')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'dashboard' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-chart-line mr-2"></i> Dashboard</a></li>
+                                <li><a href="#" onClick={() => onNavigate('sales')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'sales' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-dollar-sign mr-2"></i> Vendas</a></li>
+                                <li><a href="#" onClick={() => onNavigate('models')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'models' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-users mr-2"></i> Modelos</a></li>
+                                {/* === NOVO LINK DE NAVEGAÇÃO PARA CAMPANHAS === */}
+                                <li><a href="#" onClick={() => onNavigate('campaigns')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'campaigns' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-bullhorn mr-2"></i> Campanhas</a></li>
+                                <li><a href="#" onClick={() => onNavigate('achievements')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'achievements' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-trophy mr-2"></i> Conquistas</a></li>
+                                <li><a href="#" onClick={() => onNavigate('integrations')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'integrations' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plug mr-2"></i> Integrações</a></li>
+                                <li><a href="#" onClick={() => onNavigate('create-checkout')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'create-checkout' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plus-circle mr-2"></i> Criar Checkout</a></li>
+                            </ul>
+                        </nav>
+                        <button
+                            id="darkModeToggle"
+                            onClick={handleToggleClick}
+                            onAnimationEnd={handleAnimationEnd}
+                            className={`ml-4 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full transition-colors duration-300 ${isSpinning ? 'spin-active' : ''}`}
+                        >
+                            <i className={`fas ${isDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
+                        </button>
+                    </div>
+                </header>
+            );
+        }
+
+        // Componente de Dashboard (Exemplo)
+        function Dashboard() {
+            return (
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Dashboard Principal</h2>
+                    <p className="text-gray-300 text-center">Bem-vindo ao seu dashboard. Utilize a navegação acima para explorar as funcionalidades.</p>
+                    {/* Aqui você pode adicionar gráficos e métricas */}
+                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center">
+                            <i className="fas fa-chart-bar text-5xl text-blue-400 mb-3"></i>
+                            <h3 className="text-xl font-bold mb-2">Métricas Chave</h3>
+                            <p className="text-gray-300">Visão geral do desempenho.</p>
+                        </div>
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center">
+                            <i className="fas fa-eye text-5xl text-purple-400 mb-3"></i>
+                            <h3 className="text-xl font-bold mb-2">Engajamento</h3>
+                            <p className="text-gray-300">Entenda seus usuários.</p>
+                        </div>
+                        <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center">
+                            <i className="fas fa-wallet text-5xl text-yellow-400 mb-3"></i>
+                            <h3 className="text-xl font-bold mb-2">Faturamento</h3>
+                            <p className="text-gray-300">Acompanhe suas vendas.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            );
+        }
 
-            <div class="filter-group">
-                <label for="startDate" class="block text-gray-300 text-sm font-medium mb-1">Data Início:</label>
-                <input type="date" id="startDate" class="filter-input bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
-            </div>
+        // Outros Componentes (Exemplos simplificados)
+        function Sales() {
+            return (
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Vendas</h2>
+                    <p className="text-gray-300 text-center">Detalhes e relatórios de suas vendas.</p>
+                </div>
+            );
+        }
 
-            <div class="filter-group">
-                <label for="endDate" class="block text-gray-300 text-sm font-medium mb-1">Data Fim:</label>
-                <input type="date" id="endDate" class="filter-input bg-gray-700 border border-gray-600 text-white py-2 px-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
-            </div>
+        function Models() {
+            return (
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Modelos</h2>
+                    <p className="text-gray-300 text-center">Gerencie seus modelos de anúncios ou produtos.</p>
+                </div>
+            );
+        }
 
-            <button id="btnRefresh" class="action-button bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2.5 px-6 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
-                <i class="fas fa-sync-alt mr-2 icon-spin-on-hover"></i> Atualizar
-            </button>
-        </div>
+        function Achievements() {
+            return (
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Conquistas</h2>
+                    <p className="text-gray-300 text-center">Veja suas metas e conquistas alcançadas.</p>
+                </div>
+            );
+        }
 
-        <div id="campaigns-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <p class="text-center text-gray-400 col-span-full">Carregando campanhas...</p>
-        </div>
-    </main>
+        function Integrations() {
+            return (
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Integrações</h2>
+                    <p className="text-gray-300 text-center">Conecte-se com outras ferramentas.</p>
+                </div>
+            );
+        }
 
-    <footer class="bg-gray-800 text-gray-400 text-center p-4 mt-8 shadow-inner">
-        <p>&copy; 2025 HotLead Dashboard. Todos os direitos reservados.</p>
-    </footer>
+        function CreateCheckout() {
+            return (
+                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Página de Criar Checkout</h2>
+                    <p className="text-gray-300 text-center">Crie novos checkouts para seus produtos.</p>
+                </div>
+            );
+        }
 
-    <script src="script.js"></script>
+        // === NOVO COMPONENTE: CampaignsPage ===
+        function CampaignsPage() {
+            const [campaigns, setCampaigns] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [accountId, setAccountId] = useState("507111372463621"); // Default to Conta 1
+            const [startDate, setStartDate] = useState('');
+            const [endDate, setEndDate] = useState('');
+
+            // **ATENÇÃO: MANTER ESTE TOKEN NO CLIENTE NÃO É SEGURO PARA PRODUÇÃO.**
+            // Considere um backend para gerenciar o token e as chamadas à API.
+            const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
+
+            const contas = [
+                { id: "507111372463621", name: "Conta 1" },
+                { id: "1421566932486575", name: "Conta 2" },
+                { id: "1767547067979139", name: "Conta 3" },
+                { id: "1073555467565665", name: "Conta 4" },
+                { id: "735462832220538", name: "Conta 5" },
+            ];
+
+            // Funções de formatação
+            const formatCurrency = useCallback((value) => {
+                const num = Number(value);
+                if (isNaN(num)) return "R$ 0,00";
+                return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            }, []);
+
+            const formatDate = useCallback((dateStr) => {
+                if (!dateStr) return "-";
+                const d = new Date(dateStr);
+                return d.toLocaleDateString("pt-BR");
+            }, []);
+
+            const renderStatus = useCallback((status) => {
+                if (!status) return null;
+                status = status.toLowerCase();
+                let colorClass = '';
+                if (status.includes("active")) colorClass = 'bg-green-500 text-gray-900';
+                else if (status.includes("paused")) colorClass = 'bg-orange-500 text-gray-900';
+                else if (status.includes("inactive") || status.includes("archived") || status.includes("completed")) colorClass = 'bg-red-500 text-white';
+                return (
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
+                        {status.replace(/_/g, ' ')}
+                    </span>
+                );
+            }, []);
+
+            const renderActions = useCallback((actions) => {
+                if (!actions || !actions.length) return <p className="text-gray-400 text-sm italic">Sem ações registradas</p>;
+                const labels = {
+                    "link_click": "Cliques em Links",
+                    "post_engagement": "Engajamento em Post",
+                    "page_engagement": "Engajamento na Página",
+                    "lead": "Leads",
+                    "purchase": "Compras",
+                    "view_content": "Visualizações",
+                    "add_to_cart": "Adicionados ao Carrinho",
+                    "initiate_checkout": "Inícios de Checkout"
+                };
+                return (
+                    <div className="mt-3 pt-3 border-t border-gray-700">
+                        <p className="font-semibold text-gray-300 mb-2">Ações:</p>
+                        {actions.map((a, index) => (
+                            <p key={index} className="text-sm text-gray-400 flex items-center mb-1">
+                                <i className="fas fa-dot-circle text-green-500 mr-2"></i>
+                                {labels[a.action_type] || a.action_type}: <strong className="ml-1 text-gray-200">{a.value}</strong>
+                            </p>
+                        ))}
+                    </div>
+                );
+            }, []);
+
+            // Função de busca da API
+            const fetchCampaigns = useCallback(async (accountId, since, until) => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/campaigns`);
+                    urlCampaigns.searchParams.set("fields", "id,name,status,effective_status,start_time,stop_time");
+                    urlCampaigns.searchParams.set("limit", "200");
+                    urlCampaigns.searchParams.set("access_token", TOKEN);
+
+                    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${accountId}/insights`);
+                    urlInsights.searchParams.set("level", "campaign");
+                    urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
+                    urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
+                    urlInsights.searchParams.set("limit", "500");
+                    urlInsights.searchParams.set("access_token", TOKEN);
+
+                    const [campRes, insightsRes] = await Promise.all([
+                        fetch(urlCampaigns),
+                        fetch(urlInsights)
+                    ]);
+
+                    const campData = await campRes.json();
+                    const insightsData = await insightsRes.json();
+
+                    if (campData.error) throw new Error(`API de Campanhas: ${campData.error.message}`);
+                    if (insightsData.error) throw new Error(`API de Insights: ${insightsData.error.message}`);
+
+                    const insightsMap = {};
+                    (insightsData.data || []).forEach(i => {
+                        insightsMap[i.campaign_id] = i;
+                    });
+
+                    const combinedData = (campData.data || []).map(camp => ({
+                        ...camp,
+                        insights: insightsMap[camp.id] || {}
+                    }));
+
+                    setCampaigns(combinedData);
+                } catch (err) {
+                    setError(err.message);
+                    console.error("Erro ao carregar campanhas:", err);
+                } finally {
+                    setLoading(false);
+                }
+            }, [TOKEN]); // TOKEN é uma dependência do useCallback
+
+            // Efeito para carregar dados quando os filtros mudam ou no primeiro carregamento
+            useEffect(() => {
+                const today = new Date();
+                const lastWeek = new Date(today);
+                lastWeek.setDate(today.getDate() - 7);
+
+                // Formata para 'YYYY-MM-DD'
+                const defaultEndDate = today.toISOString().slice(0, 10);
+                const defaultStartDate = lastWeek.toISOString().slice(0, 10);
+
+                setStartDate(defaultStartDate);
+                setEndDate(defaultEndDate);
+
+                fetchCampaigns(accountId, defaultStartDate, defaultEndDate);
+            }, [accountId, fetchCampaigns]); // Recarrega se a conta ou a função de fetch mudar
+
+            const handleRefresh = () => {
+                if (!accountId || !startDate || !endDate) {
+                    alert("Por favor, selecione a conta e as datas.");
+                    return;
+                }
+                fetchCampaigns(accountId, startDate, endDate);
+            };
+
+            return (
+                <div className="p-6 bg-gray-800 rounded-lg shadow-xl mb-8 text-gray-100">
+                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Visão Geral de Campanhas</h2>
+
+                    {/* Filtros */}
+                    <div className="flex flex-wrap items-center justify-center gap-6 mb-8 p-4 bg-gray-700 rounded-md">
+                        <div className="flex flex-col">
+                            <label htmlFor="accountSelect" className="text-gray-300 text-sm font-medium mb-1">Conta de Anúncio:</label>
+                            <select
+                                id="accountSelect"
+                                value={accountId}
+                                onChange={(e) => setAccountId(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            >
+                                {contas.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name} ({c.id})</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label htmlFor="startDate" className="text-gray-300 text-sm font-medium mb-1">Data Início:</label>
+                            <input
+                                type="date"
+                                id="startDate"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label htmlFor="endDate" className="text-gray-300 text-sm font-medium mb-1">Data Fim:</label>
+                            <input
+                                type="date"
+                                id="endDate"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="bg-gray-600 border border-gray-500 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                            />
+                        </div>
+
+                        <button
+                            onClick={handleRefresh}
+                            className="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2.5 px-6 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center group"
+                            disabled={loading}
+                        >
+                            <i className={`fas fa-sync-alt mr-2 ${loading ? 'animate-spin' : 'rotate-on-hover'}`}></i>
+                            {loading ? 'Carregando...' : 'Atualizar'}
+                        </button>
+                    </div>
+
+                    {/* Área de exibição das campanhas */}
+                    {error && (
+                        <div className="bg-red-900 border border-red-700 text-red-200 p-4 rounded-md mb-6 flex items-center">
+                            <i className="fas fa-exclamation-triangle mr-3 text-xl"></i>
+                            <p>Erro ao carregar dados: {error}. Por favor, verifique seu TOKEN de acesso ou as permissões da conta.</p>
+                        </div>
+                    )}
+
+                    {loading && !error && (
+                        <div className="text-center text-green-400 py-8">
+                            <i className="fas fa-spinner fa-spin text-5xl mb-4"></i>
+                            <p className="text-lg">Carregando campanhas...</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && campaigns.length === 0 && (
+                        <div className="text-center text-gray-400 py-8">
+                            <p className="text-lg">Nenhuma campanha encontrada para o período e conta selecionados.</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && campaigns.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {campaigns.map(c => (
+                                <div key={c.id} className="bg-gray-700 rounded-lg shadow-md p-5 border border-gray-600 transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+                                    <h3 className="text-xl font-semibold text-blue-300 mb-2 truncate-text">{c.name}</h3>
+                                    <div className="mb-3 flex flex-wrap gap-2">
+                                        {renderStatus(c.status)}
+                                        {c.status !== c.effective_status && renderStatus(c.effective_status)}
+                                    </div>
+                                    <p className="text-sm text-gray-300 mb-1"><strong>ID:</strong> <span className="text-gray-200">{c.id}</span></p>
+                                    <p className="text-sm text-gray-300 mb-1"><strong>Início:</strong> <span className="text-gray-200">{formatDate(c.start_time)}</span></p>
+                                    <p className="text-sm text-gray-300 mb-3"><strong>Fim:</strong> <span className="text-gray-200">{formatDate(c.stop_time)}</span></p>
+                                    
+                                    <div className="bg-gray-800 p-3 rounded-md mb-3">
+                                        <p className="text-sm text-gray-300"><strong>Impressões:</strong> <span className="text-green-300 font-semibold">{c.insights.impressions || 0}</span></p>
+                                        <p className="text-sm text-gray-300"><strong>Cliques:</strong> <span className="text-green-300 font-semibold">{c.insights.clicks || 0}</span></p>
+                                        <p className="text-sm text-gray-300"><strong>Gasto:</strong> <span className="text-purple-300 font-bold">{formatCurrency(c.insights.spend || 0)}</span></p>
+                                        {c.insights.ctr && <p className="text-sm text-gray-300"><strong>CTR:</strong> <span className="text-yellow-300 font-semibold">{parseFloat(c.insights.ctr).toFixed(2)}%</span></p>}
+                                        {c.insights.cpc && <p className="text-sm text-gray-300"><strong>CPC:</strong> <span className="text-yellow-300 font-semibold">{formatCurrency(c.insights.cpc)}</span></p>}
+                                        {c.insights.cpm && <p className="text-sm text-gray-300"><strong>CPM:</strong> <span className="text-yellow-300 font-semibold">{formatCurrency(c.insights.cpm)}</span></p>}
+                                    </div>
+                                    {renderActions(c.insights.actions)}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        // === Fim do Componente: CampaignsPage ===
+
+        // Componente principal do aplicativo React
+        function App() {
+            const [currentPage, setCurrentPage] = useState('dashboard'); // Define a página inicial
+            const [isDarkMode, setIsDarkMode] = useState(() => {
+                const savedTheme = localStorage.getItem('theme');
+                return savedTheme === 'dark';
+            });
+
+            // Efeito para aplicar/remover a classe 'dark' do <html> e salvar no localStorage
+            useEffect(() => {
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            }, [isDarkMode]);
+
+            const toggleDarkMode = () => {
+                setIsDarkMode(prevMode => !prevMode);
+            };
+
+            const navigateTo = (page) => {
+                setCurrentPage(page);
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-100 font-sans dark:bg-gray-900 transition-colors duration-300">
+                    <Header onNavigate={navigateTo} currentPage={currentPage} toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />
+                    <main className="container mx-auto p-4">
+                        {currentPage === 'dashboard' && <Dashboard />}
+                        {currentPage === 'sales' && <Sales />}
+                        {currentPage === 'models' && <Models />}
+                        {currentPage === 'achievements' && <Achievements />}
+                        {currentPage === 'integrations' && <Integrations />}
+                        {currentPage === 'create-checkout' && <CreateCheckout />}
+                        {/* === Adiciona a renderização condicional do CampaignsPage === */}
+                        {currentPage === 'campaigns' && <CampaignsPage />}
+                    </main>
+                </div>
+            );
+        }
+
+        // Renderiza o aplicativo React no elemento 'root' do HTML
+        window.onload = function() {
+            ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        };
+
+    </script>
 </body>
 </html>
