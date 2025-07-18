@@ -98,6 +98,9 @@
         let currentTimeIncrement = 'daily'; // Define 'daily' como agrupamento padrão
         let campaignNamesMap = new Map(); // Mapa para armazenar IDs de campanha para nomes
 
+        // Helper function to add a delay
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
         // Função para formatar valores monetários para Real Brasileiro (BRL)
         const formatCurrency = (value) => {
             return new Intl.NumberFormat('pt-BR', {
@@ -221,41 +224,52 @@
 
                 const { since, until } = getTimeRangeDates(currentTimeRange);
 
-                let apiUrl;
-                // Incluído 'clicks' nos campos base
-                const baseFields = 'spend,clicks,actions,action_values,roas'; 
+                let allInsights = [];
+                const baseFields = 'spend,clicks,actions,action_values,roas';
 
-                // Lógica para construir a URL da API com base no agrupamento selecionado
                 if (currentTimeIncrement === 'daily' || currentTimeIncrement === 'hourly') {
-                    // Para agrupamentos diários/horários, solicitamos no nível da campanha.
-                    // Não incluímos 'campaign_name' explicitamente nos 'fields' para evitar o erro.
-                    // A API deve retornar o campaign_id, que usaremos para buscar o nome do mapa.
-                    apiUrl = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/insights?` +
-                               `fields=campaign_id,${baseFields}&` + // Solicita campaign_id, mas NÃO campaign_name
-                               `time_range={'since':'${since}','until':'${until}'}&` +
-                               `time_increment=${currentTimeIncrement}&` +
-                               `level=campaign&` + // Nível da campanha
-                               `access_token=${ACCESS_TOKEN}`;
-                } else { // Isso cobre 'all_days' (Total do Período) e qualquer 'monthly' futuro
-                    // Para 'all_days', podemos solicitar 'campaign_name' explicitamente nos fields
-                    // pois essa combinação é permitida com level=campaign.
-                    apiUrl = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/insights?` +
-                               `fields=campaign_name,campaign_id,${baseFields}&` + // Solicita campaign_name E campaign_id
-                               `time_range={'since':'${since}','until':'${until}'}&` +
-                               `time_increment=${currentTimeIncrement}&` + // Será 'all_days'
-                               `level=campaign&` + // Nível da campanha
-                               `access_token=${ACCESS_TOKEN}`;
+                    // Para agrupamentos diários/horários, iteramos por cada campanha para obter insights
+                    // Isso evita o erro 'name_placeholder' ao combinar campaign_name com time_increment diário/horário
+                    for (const [campaignId, campaignName] of campaignNamesMap.entries()) {
+                        const campaignInsightsUrl = `https://graph.facebook.com/v19.0/${campaignId}/insights?` +
+                                                    `fields=${baseFields}&` + // Não precisa de campaign_name aqui
+                                                    `time_range={'since':'${since}','until':'${until}'}&` +
+                                                    `time_increment=${currentTimeIncrement}&` +
+                                                    `access_token=${ACCESS_TOKEN}`;
+                        
+                        const campaignResponse = await fetch(campaignInsightsUrl);
+                        if (!campaignResponse.ok) {
+                            const errorData = await campaignResponse.json();
+                            console.warn(`Erro ao buscar insights para campanha ${campaignName} (${campaignId}): ${errorData.error.message}`);
+                            continue; // Pula para a próxima campanha se houver um erro nesta
+                        }
+                        const campaignData = await campaignResponse.json();
+                        
+                        // Adiciona campaign_name e campaign_id a cada insight para processamento consistente
+                        campaignData.data.forEach(insight => {
+                            insight.campaign_name = campaignName;
+                            insight.campaign_id = campaignId;
+                            allInsights.push(insight);
+                        });
+                        await sleep(50); // Pequeno atraso para evitar limites de taxa
+                    }
+                } else { // Isso cobre 'all_days' (Total do Período)
+                    // Para 'all_days', podemos buscar insights para a conta inteira no nível da campanha
+                    const apiUrl = `https://graph.facebook.com/v19.0/${AD_ACCOUNT_ID}/insights?` +
+                                   `fields=campaign_name,campaign_id,${baseFields}&` +
+                                   `time_range={'since':'${since}','until':'${until}'}&` +
+                                   `time_increment=${currentTimeIncrement}&` + // Será 'all_days'
+                                   `level=campaign&` +
+                                   `access_token=${ACCESS_TOKEN}`;
+                    
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Erro da API Meta: ${errorData.error.message} (Código: ${errorData.error.code})`);
+                    }
+                    const data = await response.json();
+                    allInsights = data.data;
                 }
-
-                const response = await fetch(apiUrl);
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Erro da API Meta: ${errorData.error.message} (Código: ${errorData.error.code})`);
-                }
-
-                const data = await response.json();
-                const insights = data.data; // Os dados de insights estão na propriedade 'data'
 
                 // Inicializa totais para esta conta
                 let currentAccountTotalSpend = 0;
@@ -267,9 +281,9 @@
 
                 insightsDisplayElement.innerHTML = ''; // Limpa o display anterior
 
-                if (insights && insights.length > 0) {
+                if (allInsights && allInsights.length > 0) {
                     // Iterar sobre cada insight (que pode ser por dia/hora ou por campanha)
-                    insights.forEach(insight => {
+                    allInsights.forEach(insight => {
                         currentAccountTotalSpend += parseFloat(insight.spend || 0);
                         currentAccountTotalClicks += parseFloat(insight.clicks || 0);
 
