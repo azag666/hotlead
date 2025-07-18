@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Trackeador de Campanhas Meta</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard de Campanhas Meta Ads</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Trackeador de Campanhas Meta</h1>
+  <header>
+    <h1>📊 Meta Ads Trackeador</h1>
+    <p>Veja suas campanhas com performance e status detalhados</p>
+  </header>
 
-  <div class="filters">
+  <section class="filtros">
     <label for="adAccount">Conta de Anúncio:</label>
     <select id="adAccount">
       <option value="1073555467565665">Conta 1</option>
@@ -19,15 +23,15 @@
     </select>
 
     <label for="startDate">Data Inicial:</label>
-    <input type="date" id="startDate">
+    <input type="date" id="startDate" />
 
     <label for="endDate">Data Final:</label>
-    <input type="date" id="endDate">
+    <input type="date" id="endDate" />
 
-    <button onclick="buscarCampanhas()">Buscar Campanhas</button>
-  </div>
+    <button onclick="buscarCampanhas()">🔍 Buscar Campanhas</button>
+  </section>
 
-  <div id="resultados"></div>
+  <main id="resultados"></main>
 
   <script src="script.js"></script>
 </body>
