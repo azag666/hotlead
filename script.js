@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Elementos do DOM
     const adAccountSelect = document.getElementById('adAccountSelect');
     const totalSpendElement = document.getElementById('totalSpend');
+    const totalClicksElement = document.getElementById('totalClicks');
+    const averageCpcElement = document.getElementById('averageCpc');
     const totalRoasElement = document.getElementById('totalRoas');
     const totalPurchasesElement = document.getElementById('totalPurchases');
     const totalConversionValueElement = document.getElementById('totalConversionValue');
@@ -43,6 +45,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const formatRoas = (value) => {
         if (value === null || isNaN(value)) return 'N/A';
         return value.toFixed(2); // Formata para 2 casas decimais
+    };
+
+    // Função para formatar CPC
+    const formatCpc = (spend, clicks) => {
+        if (clicks === 0 || isNaN(spend) || isNaN(clicks)) return 'N/A';
+        return formatCurrency(spend / clicks);
     };
 
     // Preenche o dropdown de contas de anúncios
@@ -119,6 +127,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadMetaAdsData = async () => {
         // Define o estado inicial de carregamento para todas as métricas e display
         totalSpendElement.textContent = 'Carregando...';
+        totalClicksElement.textContent = 'Carregando...';
+        averageCpcElement.textContent = 'Carregando...';
         totalRoasElement.textContent = 'Carregando...';
         totalPurchasesElement.textContent = 'Carregando...';
         totalConversionValueElement.textContent = 'Carregando...';
@@ -131,7 +141,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { since, until } = getTimeRangeDates(currentTimeRange);
 
             let apiUrl;
-            const baseFields = 'spend,actions,action_values,roas'; // Campos comuns a todas as requisições
+            // Incluído 'clicks' nos campos base
+            const baseFields = 'spend,clicks,actions,action_values,roas'; 
 
             // Lógica para construir a URL da API com base no agrupamento selecionado
             if (currentTimeIncrement === 'daily' || currentTimeIncrement === 'hourly') {
@@ -167,6 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Inicializa totais
             let totalSpend = 0;
+            let totalClicks = 0;
             let totalPurchases = 0;
             let totalConversionValue = 0;
             let totalRoasSum = 0;
@@ -178,6 +190,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Iterar sobre cada insight (que pode ser por dia/hora ou por campanha)
                 insights.forEach(insight => {
                     totalSpend += parseFloat(insight.spend || 0);
+                    totalClicks += parseFloat(insight.clicks || 0);
 
                     // Processa ações e valores de ações
                     if (insight.actions) {
@@ -224,6 +237,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     itemContent += `<div class="label">Campanha:</div><span>${campaignName}</span>`;
                     
                     itemContent += `<div class="label">Gasto:</div><span>${formatCurrency(parseFloat(insight.spend || 0))}</span>`;
+                    itemContent += `<div class="label">Cliques:</div><span>${parseFloat(insight.clicks || 0).toFixed(0)}</span>`;
+                    itemContent += `<div class="label">CPC:</div><span>${formatCpc(parseFloat(insight.spend || 0), parseFloat(insight.clicks || 0))}</span>`;
                     
                     let itemPurchases = 0;
                     let itemConversionValue = 0;
@@ -251,6 +266,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Atualiza as métricas totais no topo do dashboard
                 totalSpendElement.textContent = formatCurrency(totalSpend);
+                totalClicksElement.textContent = totalClicks.toFixed(0);
+                averageCpcElement.textContent = formatCpc(totalSpend, totalClicks);
                 totalPurchasesElement.textContent = totalPurchases.toFixed(0);
                 totalConversionValueElement.textContent = formatCurrency(totalConversionValue);
                 totalRoasElement.textContent = roasCount > 0 ? formatRoas(totalRoasSum / roasCount) : 'N/A';
@@ -258,6 +275,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 insightsDisplayElement.innerHTML = '<p>Nenhum dado encontrado para o período e conta selecionados.</p>';
                 totalSpendElement.textContent = formatCurrency(0);
+                totalClicksElement.textContent = '0';
+                averageCpcElement.textContent = 'N/A';
                 totalRoasElement.textContent = 'N/A';
                 totalPurchasesElement.textContent = '0';
                 totalConversionValueElement.textContent = formatCurrency(0);
@@ -266,6 +285,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Erro ao carregar dados do Meta Ads:', error);
             totalSpendElement.textContent = 'Erro';
+            totalClicksElement.textContent = 'Erro';
+            averageCpcElement.textContent = 'Erro';
             totalRoasElement.textContent = 'Erro';
             totalPurchasesElement.textContent = 'Erro';
             totalConversionValueElement.textContent = 'Erro';
