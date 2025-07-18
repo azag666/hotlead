@@ -3,68 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Dashboard Meta Ads Avançado</title>
+    <title>Dashboard Principal Meta Ads</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variáveis globais fornecidas pelo ambiente Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let db;
+        let auth;
+        let userId;
+
+        // Inicializa Firebase e autentica
+        const initFirebase = async () => {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Firebase autenticado. User ID:", userId);
+                        loadAggregatedData(); // Carrega os dados agregados após autenticação
+                    } else {
+                        console.log("Nenhum usuário logado.");
+                        // Fallback para userId se não autenticado (ex: para dados públicos)
+                        userId = crypto.randomUUID(); // Gera um ID temporário
+                        loadAggregatedData();
+                    }
+                });
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase ou autenticar:", error);
+                document.getElementById('totalSpend').textContent = 'Erro';
+                document.getElementById('totalClicks').textContent = 'Erro';
+                document.getElementById('averageCpc').textContent = 'Erro';
+                document.getElementById('totalPurchases').textContent = 'Erro';
+                document.getElementById('totalConversionValue').textContent = 'Erro';
+                document.getElementById('averageRoas').textContent = 'Erro';
+                document.getElementById('accountLinks').innerHTML = `<p style="color: red;">Erro ao carregar dados: ${error.message}</p>`;
+            }
+        };
+
+        // Função para formatar valores monetários para Real Brasileiro (BRL)
+        const formatCurrency = (value) => {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+            }).format(value);
+        };
+
+        // Função para formatar ROAS
+        const formatRoas = (value) => {
+            if (value === null || isNaN(value)) return 'N/A';
+            return value.toFixed(2);
+        };
+
+        // Função para formatar CPC
+        const formatCpc = (spend, clicks) => {
+            if (clicks === 0 || isNaN(spend) || isNaN(clicks)) return 'N/A';
+            return formatCurrency(spend / clicks);
+        };
+
+        // Carrega os dados agregados do Firestore
+        const loadAggregatedData = async () => {
+            if (!db || !userId) {
+                console.warn("Firestore ou User ID não estão prontos.");
+                return;
+            }
+
+            document.getElementById('totalSpend').textContent = 'Carregando...';
+            document.getElementById('totalClicks').textContent = 'Carregando...';
+            document.getElementById('averageCpc').textContent = 'Carregando...';
+            document.getElementById('totalPurchases').textContent = 'Carregando...';
+            document.getElementById('totalConversionValue').textContent = 'Carregando...';
+            document.getElementById('averageRoas').textContent = 'Carregando...';
+            document.getElementById('accountLinks').innerHTML = '<p>Carregando links das contas...</p>';
+
+            let totalSpend = 0;
+            let totalClicks = 0;
+            let totalPurchases = 0;
+            let totalConversionValue = 0;
+            let totalRoasSum = 0;
+            let roasCount = 0;
+
+            const accountLinksDiv = document.getElementById('accountLinks');
+            accountLinksDiv.innerHTML = ''; // Limpa links anteriores
+
+            try {
+                // Caminho da coleção onde os resumos das contas são salvos
+                const summariesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/ad_account_summaries`);
+                const q = query(summariesCollectionRef);
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    accountLinksDiv.innerHTML = '<p>Nenhum resumo de conta encontrado. Visite as páginas individuais para gerar dados.</p>';
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const accountId = doc.id; // O ID do documento é o ID da conta
+                        const accountName = data.accountName || `Conta ${accountId.substring(4)}`; // Usa o nome salvo ou um padrão
+
+                        // Agrega os totais
+                        totalSpend += parseFloat(data.totalSpend || 0);
+                        totalClicks += parseFloat(data.totalClicks || 0);
+                        totalPurchases += parseFloat(data.totalPurchases || 0);
+                        totalConversionValue += parseFloat(data.totalConversionValue || 0);
+                        if (parseFloat(data.averageRoas || 0) > 0) {
+                            totalRoasSum += parseFloat(data.averageRoas || 0);
+                            roasCount++;
+                        }
+
+                        // Cria o link para a página individual da conta
+                        const linkItem = document.createElement('div');
+                        linkItem.classList.add('account-link-item');
+                        linkItem.innerHTML = `
+                            <a href="ad_account_page.html?account_id=${accountId}" class="button-link">
+                                ${accountName} (ID: ${accountId})
+                            </a>
+                            <p>Gasto: ${formatCurrency(parseFloat(data.totalSpend || 0))}</p>
+                            <p>Compras: ${parseFloat(data.totalPurchases || 0).toFixed(0)}</p>
+                            <p>ROAS: ${formatRoas(parseFloat(data.averageRoas || 0))}</p>
+                        `;
+                        accountLinksDiv.appendChild(linkItem);
+                    });
+                }
+
+                // Atualiza as métricas totais no topo do dashboard
+                document.getElementById('totalSpend').textContent = formatCurrency(totalSpend);
+                document.getElementById('totalClicks').textContent = totalClicks.toFixed(0);
+                document.getElementById('averageCpc').textContent = formatCpc(totalSpend, totalClicks);
+                document.getElementById('totalPurchases').textContent = totalPurchases.toFixed(0);
+                document.getElementById('totalConversionValue').textContent = formatCurrency(totalConversionValue);
+                document.getElementById('averageRoas').textContent = roasCount > 0 ? formatRoas(totalRoasSum / roasCount) : 'N/A';
+
+            } catch (error) {
+                console.error("Erro ao carregar dados agregados do Firestore:", error);
+                document.getElementById('totalSpend').textContent = 'Erro';
+                document.getElementById('totalClicks').textContent = 'Erro';
+                document.getElementById('averageCpc').textContent = 'Erro';
+                document.getElementById('totalPurchases').textContent = 'Erro';
+                document.getElementById('totalConversionValue').textContent = 'Erro';
+                document.getElementById('averageRoas').textContent = 'Erro';
+                document.getElementById('accountLinks').innerHTML = `<p style="color: red;">Erro ao carregar dados agregados: ${error.message}</p>`;
+            }
+        };
+
+        // Inicia a inicialização do Firebase quando o DOM estiver completamente carregado
+        document.addEventListener('DOMContentLoaded', initFirebase);
+    </script>
 </head>
 <body>
     <div class="container">
-        <h1>Dashboard Meta Ads</h1>
-
-        <div class="controls">
-            <div class="control-group">
-                <label for="adAccountSelect">Selecionar Conta de Anúncios:</label>
-                <select id="adAccountSelect" class="select-box"></select>
-            </div>
-
-            <div class="control-group">
-                <label>Período:</label>
-                <button class="filter-button active" data-time-range="today">Hoje</button>
-                <button class="filter-button" data-time-range="yesterday">Ontem</button>
-                <button class="filter-button" data-time-range="last_7_days">Últimos 7 Dias</button>
-            </div>
-
-            <div class="control-group">
-                <label>Agrupamento:</label>
-                <!-- Botões de agrupamento: diário e horário serão por campanha individual, total por período será agregado -->
-                <button class="increment-button active" data-time-increment="daily">Por Dia</button>
-                <button class="increment-button" data-time-increment="hourly">Por Hora</button>
-                <button class="increment-button" data-time-increment="all_days">Total do Período</button>
-            </div>
-        </div>
+        <h1>Dashboard Principal Meta Ads</h1>
 
         <div class="summary-metrics">
             <div class="metric-card">
-                <h3>Gasto Total</h3>
+                <h3>Gasto Total Agregado</h3>
                 <p id="totalSpend" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>Cliques Total</h3>
+                <h3>Cliques Total Agregado</h3>
                 <p id="totalClicks" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>CPC Médio</h3>
+                <h3>CPC Médio Agregado</h3>
                 <p id="averageCpc" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>Compras Total</h3>
+                <h3>Compras Total Agregado</h3>
                 <p id="totalPurchases" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>Valor Conversão Total</h3>
+                <h3>Valor Conversão Total Agregado</h3>
                 <p id="totalConversionValue" class="metric-value">Carregando...</p>
             </div>
             <div class="metric-card">
-                <h3>ROAS Médio</h3>
+                <h3>ROAS Médio Agregado</h3>
                 <p id="averageRoas" class="metric-value">Carregando...</p>
             </div>
         </div>
 
-        <h2>Detalhes por Período/Campanha</h2>
-        <div id="insightsDisplay">
-            <p>Selecione uma conta e período para visualizar os dados.</p>
+        <h2>Contas de Anúncios</h2>
+        <div id="accountLinks" class="account-links-container">
+            <p>Carregando links das contas...</p>
         </div>
     </div>
-
-    <script src="script.js"></script>
 </body>
 </html>
