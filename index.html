@@ -5,22 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trackeador Meta Ads - Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
   <div class="container">
     <h1>Trackeador Meta Ads</h1>
 
+    <div class="kpi-summary" id="kpiSummary">
+      </div>
+
     <div class="filters">
-      <label for="accountSelect">Conta de Anúncio:</label>
-      <select id="accountSelect"></select>
+      <div class="filter-group">
+        <label for="accountSelect">Conta de Anúncio:</label>
+        <select id="accountSelect"></select>
+      </div>
 
-      <label for="startDate">Data início:</label>
-      <input type="date" id="startDate" />
+      <div class="filter-group">
+        <label for="startDate">Data início:</label>
+        <input type="date" id="startDate" />
+      </div>
 
-      <label for="endDate">Data fim:</label>
-      <input type="date" id="endDate" />
+      <div class="filter-group">
+        <label for="endDate">Data fim:</label>
+        <input type="date" id="endDate" />
+      </div>
 
-      <button id="btnRefresh">Atualizar</button>
+      <button id="btnRefresh">
+        <i class="fas fa-sync-alt"></i> Atualizar
+      </button>
     </div>
 
     <div class="tabs">
@@ -32,6 +45,15 @@
     <div id="campanhas" class="tab-content active"></div>
     <div id="adsets" class="tab-content"></div>
     <div id="ads" class="tab-content"></div>
+
+    <div id="globalLoading" class="global-loading">
+      <i class="fas fa-spinner fa-spin"></i> Carregando dados...
+    </div>
+
+    <div id="globalError" class="global-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span class="error-message"></span>
+    </div>
   </div>
 
   <script src="script.js"></script>
