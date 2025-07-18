@@ -4,56 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trackeador Meta Ads - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body>
-  <div class="container">
-    <h1>Trackeador Meta Ads</h1>
+<body class="bg-gray-900 text-gray-100 font-sans p-4">
+  <div class="container mx-auto max-w-4xl bg-gray-800 p-6 rounded-lg shadow-xl">
+    <h1 class="text-center text-4xl font-bold mb-6 text-green-400">Trackeador Meta Ads</h1>
 
-    <div class="kpi-summary" id="kpiSummary">
-      </div>
+    <div class="filters flex flex-wrap justify-center items-center gap-4 mb-8 p-4 bg-gray-700 rounded-md">
+      <label for="accountSelect" class="font-semibold text-lg">Conta de Anúncio:</label>
+      <select id="accountSelect" class="bg-gray-600 border border-gray-500 rounded-md px-3 py-1 text-lg text-gray-100"></select>
 
-    <div class="filters">
-      <div class="filter-group">
-        <label for="accountSelect">Conta de Anúncio:</label>
-        <select id="accountSelect"></select>
-      </div>
+      <label for="startDate" class="font-semibold text-lg">Data início:</label>
+      <input type="date" id="startDate" class="bg-gray-600 border border-gray-500 rounded-md px-3 py-1 text-lg text-gray-100" />
 
-      <div class="filter-group">
-        <label for="startDate">Data início:</label>
-        <input type="date" id="startDate" />
-      </div>
+      <label for="endDate" class="font-semibold text-lg">Data fim:</label>
+      <input type="date" id="endDate" class="bg-gray-600 border border-gray-500 rounded-md px-3 py-1 text-lg text-gray-100" />
 
-      <div class="filter-group">
-        <label for="endDate">Data fim:</label>
-        <input type="date" id="endDate" />
-      </div>
-
-      <button id="btnRefresh">
-        <i class="fas fa-sync-alt"></i> Atualizar
-      </button>
+      <button id="btnRefresh" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md transition duration-300">Atualizar</button>
     </div>
 
-    <div class="tabs">
-      <button class="tab-button active" data-tab="campanhas">Campanhas</button>
-      <button class="tab-button" data-tab="adsets">Conjuntos de Anúncios</button>
-      <button class="tab-button" data-tab="ads">Anúncios</button>
+    <div class="tabs flex justify-center gap-3 mb-6">
+      <button class="tab-button active bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 px-5 rounded-md font-semibold transition duration-300" data-tab="campanhas">Campanhas</button>
+      <button class="tab-button bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 px-5 rounded-md font-semibold transition duration-300" data-tab="adsets">Conjuntos de Anúncios</button>
+      <button class="tab-button bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 px-5 rounded-md font-semibold transition duration-300" data-tab="ads">Anúncios</button>
     </div>
 
-    <div id="campanhas" class="tab-content active"></div>
-    <div id="adsets" class="tab-content"></div>
-    <div id="ads" class="tab-content"></div>
-
-    <div id="globalLoading" class="global-loading">
-      <i class="fas fa-spinner fa-spin"></i> Carregando dados...
-    </div>
-
-    <div id="globalError" class="global-error">
-      <i class="fas fa-exclamation-triangle"></i>
-      <span class="error-message"></span>
-    </div>
+    <div id="campanhas" class="tab-content active grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    <div id="adsets" class="tab-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    <div id="ads" class="tab-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
   </div>
 
   <script src="script.js"></script>
