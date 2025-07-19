@@ -69,68 +69,6 @@
         .custom-table tr:hover {
             background-color: #2a2a2a; /* Lighter hover for dark theme */
         }
-        /* Styles for API Documentation within the dashboard */
-        .api-doc-container {
-            background-color: #1a202c; /* bg-gray-900 */
-            color: #e2e8f0; /* text-gray-200 */
-            line-height: 1.6;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .api-doc-container h1, .api-doc-container h2, .api-doc-container h3, .api-doc-container h4 {
-            color: #48bb78; /* text-green-500 */
-            font-weight: bold;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-        }
-        .api-doc-container h1 { font-size: 2.5rem; }
-        .api-doc-container h2 { font-size: 2rem; border-bottom: 1px solid #4a5568; padding-bottom: 0.5rem; }
-        .api-doc-container h3 { font-size: 1.75rem; color: #63b3ed; /* text-blue-400 */ }
-        .api-doc-container h4 { font-size: 1.5rem; color: #a0aec0; /* text-gray-400 */ }
-        .api-doc-container p {
-            margin-bottom: 1rem;
-        }
-        .api-doc-container ul {
-            list-style-type: disc;
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .api-doc-container li {
-            margin-bottom: 0.5rem;
-        }
-        .api-doc-container pre {
-            background-color: #2d3748; /* bg-gray-800 */
-            color: #e2e8f0;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            overflow-x: auto;
-            margin-bottom: 1rem;
-        }
-        .api-doc-container code {
-            font-family: 'Fira Code', 'Cascadia Code', monospace;
-            background-color: #4a5568; /* bg-gray-600 */
-            padding: 0.2em 0.4em;
-            border-radius: 0.25rem;
-            color: #edf2f7; /* text-gray-100 */
-        }
-        .api-doc-container strong {
-            color: #a0aec0;
-        }
-        .api-doc-container .note {
-            background-color: #2a4365; /* bg-blue-800 darker */
-            border-left: 4px solid #63b3ed; /* border-blue-400 */
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            border-radius: 0.25rem;
-        }
-        .api-doc-container .warning {
-            background-color: #634d2a; /* bg-yellow-800 darker */
-            border-left: 4px solid #ecc94b; /* border-yellow-400 */
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            border-radius: 0.25rem;
-        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -143,7 +81,8 @@
         const formatCurrency = (value) => {
             const num = Number(value);
             if (isNaN(num)) return "R$ 0,00";
-            return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            // Assume the value is in cents and converts to reais
+            return (num / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
         };
 
         const formatDate = (dateStr) => {
@@ -156,147 +95,17 @@
             return revenue - spending;
         };
 
-        // --- Mock Data (Dados de simulação para desenvolvimento) ---
-        // Em um ambiente real, estes dados viriam de APIs do seu backend ou das plataformas.
+        // --- Dados Iniciais (NÃO SÃO MOCKS, mas dados que seriam carregados de APIs) ---
 
-        // MOCK_SALES_DATA atualizado para refletir o formato da planilha
-        const MOCK_SALES_DATA = [
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000796', valor: 1000.00, data_geracao: '2025-07-27T12:38:41Z', data_pagamento: '2025-07-27T12:40:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000798', valor: 1790.00, data_geracao: '2025-07-27T13:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000799', valor: 1790.00, data_geracao: '2025-07-27T13:15:00Z', data_pagamento: '2025-07-27T13:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000800', valor: 1790.00, data_geracao: '2025-07-27T13:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000801', valor: 1790.00, data_geracao: '2025-07-27T13:45:00Z', data_pagamento: '2025-07-27T13:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000802', valor: 1790.00, data_geracao: '2025-07-27T14:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000803', valor: 1790.00, data_geracao: '2025-07-27T14:15:00Z', data_pagamento: '2025-07-27T14:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000804', valor: 1790.00, data_geracao: '2025-07-27T14:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000805', valor: 1790.00, data_geracao: '2025-07-27T14:45:00Z', data_pagamento: '2025-07-27T14:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000806', valor: 1790.00, data_geracao: '2025-07-27T15:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000807', valor: 1790.00, data_geracao: '2025-07-27T15:15:00Z', data_pagamento: '2025-07-27T15:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000808', valor: 1790.00, data_geracao: '2025-07-27T15:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000809', valor: 1790.00, data_geracao: '2025-07-27T15:45:00Z', data_pagamento: '2025-07-27T15:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000810', valor: 1790.00, data_geracao: '2025-07-27T16:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000811', valor: 1790.00, data_geracao: '2025-07-27T16:15:00Z', data_pagamento: '2025-07-27T16:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000812', valor: 1790.00, data_geracao: '2025-07-27T16:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000813', valor: 1790.00, data_geracao: '2025-07-27T16:45:00Z', data_pagamento: '2025-07-27T16:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000814', valor: 1790.00, data_geracao: '2025-07-27T17:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000815', valor: 1790.00, data_geracao: '2025-07-27T17:15:00Z', data_pagamento: '2025-07-27T17:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000816', valor: 1790.00, data_geracao: '2025-07-27T17:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000817', valor: 1790.00, data_geracao: '2025-07-27T17:45:00Z', data_pagamento: '2025-07-27T17:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000818', valor: 1790.00, data_geracao: '2025-07-27T18:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000819', valor: 1790.00, data_geracao: '2025-07-27T18:15:00Z', data_pagamento: '2025-07-27T18:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000820', valor: 1790.00, data_geracao: '2025-07-27T18:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000821', valor: 1790.00, data_geracao: '2025-07-27T18:45:00Z', data_pagamento: '2025-07-27T18:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000822', valor: 1790.00, data_geracao: '2025-07-27T19:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000823', valor: 1790.00, data_geracao: '2025-07-27T19:15:00Z', data_pagamento: '2025-07-27T19:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000824', valor: 1790.00, data_geracao: '2025-07-27T19:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000825', valor: 1790.00, data_geracao: '2025-07-27T19:45:00Z', data_pagamento: '2025-07-27T19:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000826', valor: 1790.00, data_geracao: '2025-07-27T20:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000827', valor: 1790.00, data_geracao: '2025-07-27T20:15:00Z', data_pagamento: '2025-07-27T20:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000828', valor: 1790.00, data_geracao: '2025-07-27T20:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000829', valor: 1790.00, data_geracao: '2025-07-27T20:45:00Z', data_pagamento: '2025-07-27T20:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000830', valor: 1790.00, data_geracao: '2025-07-27T21:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000831', valor: 1790.00, data_geracao: '2025-07-27T21:15:00Z', data_pagamento: '2025-07-27T21:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000832', valor: 1790.00, data_geracao: '2025-07-27T21:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000833', valor: 1790.00, data_geracao: '2025-07-27T21:45:00Z', data_pagamento: '2025-07-27T21:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000834', valor: 1790.00, data_geracao: '2025-07-27T22:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000835', valor: 1790.00, data_geracao: '2025-07-27T22:15:00Z', data_pagamento: '2025-07-27T22:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000836', valor: 1790.00, data_geracao: '2025-07-27T22:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000837', valor: 1790.00, data_geracao: '2025-07-27T22:45:00Z', data_pagamento: '2025-07-27T22:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000838', valor: 1790.00, data_geracao: '2025-07-27T23:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000839', valor: 1790.00, data_geracao: '2025-07-27T23:15:00Z', data_pagamento: '2025-07-27T23:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000840', valor: 1790.00, data_geracao: '2025-07-27T23:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000841', valor: 1790.00, data_geracao: '2025-07-27T23:45:00Z', data_pagamento: '2025-07-27T23:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000842', valor: 1790.00, data_geracao: '2025-07-28T00:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000843', valor: 1790.00, data_geracao: '2025-07-28T00:15:00Z', data_pagamento: '2025-07-28T00:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000844', valor: 1790.00, data_geracao: '2025-07-28T00:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000845', valor: 1790.00, data_geracao: '2025-07-28T00:45:00Z', data_pagamento: '2025-07-28T00:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000846', valor: 1790.00, data_geracao: '2025-07-28T01:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000847', valor: 1790.00, data_geracao: '2025-07-28T01:15:00Z', data_pagamento: '2025-07-28T01:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000848', valor: 1790.00, data_geracao: '2025-07-28T01:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000849', valor: 1790.00, data_geracao: '2025-07-28T01:45:00Z', data_pagamento: '2025-07-28T01:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000850', valor: 1790.00, data_geracao: '2025-07-28T02:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000851', valor: 1790.00, data_geracao: '2025-07-28T02:15:00Z', data_pagamento: '2025-07-28T02:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000852', valor: 1790.00, data_geracao: '2025-07-28T02:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000853', valor: 1790.00, data_geracao: '2025-07-28T02:45:00Z', data_pagamento: '2025-07-28T02:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000854', valor: 1790.00, data_geracao: '2025-07-28T03:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000855', valor: 1790.00, data_geracao: '2025-07-28T03:15:00Z', data_pagamento: '2025-07-28T03:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000856', valor: 1790.00, data_geracao: '2025-07-28T03:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000857', valor: 1790.00, data_geracao: '2025-07-28T03:45:00Z', data_pagamento: '2025-07-28T03:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000858', valor: 1790.00, data_geracao: '2025-07-28T04:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000859', valor: 1790.00, data_geracao: '2025-07-28T04:15:00Z', data_pagamento: '2025-07-28T04:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000860', valor: 1790.00, data_geracao: '2025-07-28T04:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000861', valor: 1790.00, data_geracao: '2025-07-28T04:45:00Z', data_pagamento: '2025-07-28T04:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000862', valor: 1790.00, data_geracao: '2025-07-28T05:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000863', valor: 1790.00, data_geracao: '2025-07-28T05:15:00Z', data_pagamento: '2025-07-28T05:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000864', valor: 1790.00, data_geracao: '2025-07-28T05:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000865', valor: 1790.00, data_geracao: '2025-07-28T05:45:00Z', data_pagamento: '2025-07-28T05:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000866', valor: 1790.00, data_geracao: '2025-07-28T06:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000867', valor: 1790.00, data_geracao: '2025-07-28T06:15:00Z', data_pagamento: '2025-07-28T06:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000868', valor: 1790.00, data_geracao: '2025-07-28T06:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000869', valor: 1790.00, data_geracao: '2025-07-28T06:45:00Z', data_pagamento: '2025-07-28T06:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000870', valor: 1790.00, data_geracao: '2025-07-28T07:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000871', valor: 1790.00, data_geracao: '2025-07-28T07:15:00Z', data_pagamento: '2025-07-28T07:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000872', valor: 1790.00, data_geracao: '2025-07-28T07:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000873', valor: 1790.00, data_geracao: '2025-07-28T07:45:00Z', data_pagamento: '2025-07-28T07:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000874', valor: 1790.00, data_geracao: '2025-07-28T08:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000875', valor: 1790.00, data_geracao: '2025-07-28T08:15:00Z', data_pagamento: '2025-07-28T08:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000876', valor: 1790.00, data_geracao: '2025-07-28T08:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000877', valor: 1790.00, data_geracao: '2025-07-28T08:45:00Z', data_pagamento: '2025-07-28T08:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000878', valor: 1790.00, data_geracao: '2025-07-29T09:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000879', valor: 1790.00, data_geracao: '2025-07-29T09:15:00Z', data_pagamento: '2025-07-29T09:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000880', valor: 1790.00, data_geracao: '2025-07-29T09:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000881', valor: 1790.00, data_geracao: '2025-07-29T09:45:00Z', data_pagamento: '2025-07-29T09:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000882', valor: 1790.00, data_geracao: '2025-07-29T10:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000883', valor: 1790.00, data_geracao: '2025-07-29T10:15:00Z', data_pagamento: '2025-07-29T10:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000884', valor: 1790.00, data_geracao: '2025-07-29T10:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000885', valor: 1790.00, data_geracao: '2025-07-29T10:45:00Z', data_pagamento: '2025-07-29T10:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000886', valor: 1790.00, data_geracao: '2025-07-29T11:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000887', valor: 1790.00, data_geracao: '2025-07-29T11:15:00Z', data_pagamento: '2025-07-29T11:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000888', valor: 1790.00, data_geracao: '2025-07-29T11:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000889', valor: 1790.00, data_geracao: '2025-07-29T11:45:00Z', data_pagamento: '2025-07-29T11:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000990', valor: 1790.00, data_geracao: '2025-07-29T13:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000991', valor: 1790.00, data_geracao: '2025-07-29T13:15:00Z', data_pagamento: '2025-07-29T13:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000992', valor: 1790.00, data_geracao: '2025-07-29T13:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000993', valor: 1790.00, data_geracao: '2025-07-29T13:45:00Z', data_pagamento: '2025-07-29T13:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000994', valor: 1790.00, data_geracao: '2025-07-29T14:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000995', valor: 1790.00, data_geracao: '2025-07-29T14:15:00Z', data_pagamento: '2025-07-29T14:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000996', valor: 1790.00, data_geracao: '2025-07-29T14:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000997', valor: 1790.00, data_geracao: '2025-07-29T14:45:00Z', data_pagamento: '2025-07-29T14:48:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000998', valor: 1790.00, data_geracao: '2025-07-29T15:00:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2000999', valor: 1790.00, data_geracao: '2025-07-29T15:15:00Z', data_pagamento: '2025-07-29T15:18:00Z', status: 'PAGO', meta_status: 'PAID' },
-            { modelo: 'Joyca', campanha: 'lead_quente_01', codigo_pix: '2001000', valor: 1790.00, data_geracao: '2025-07-29T15:30:00Z', data_pagamento: null, status: 'AGUARDANDO_PAGAMENTO', meta_status: null },
-        ];
+        // Contas de Anúncios (seriam carregadas de uma API real)
+        const AD_ACCOUNTS_INITIAL_STATE = []; // Inicia vazio, seria populado por uma API
 
-        // MOCK_AD_ACCOUNTS agora é global
-        const MOCK_AD_ACCOUNTS = [
-            { id: "507111372463621", name: "Conta de Anúncios 1 (Principal)" },
-            { id: "1421566932486575", name: "Conta de Anúncios 2 (Backup)" },
-            { id: "1767547067979139", name: "Conta de Anúncios 3 (Testes)" },
-            { id: "1073555467565665", name: "Conta de Anúncios 4 (Internacional)" },
-            { id: "735462832220538", name: "Conta de Anúncios 5 (Parceiros)" },
-        ];
+        // Dados de Bots (seriam carregados de uma API real)
+        const BOTS_DATA_INITIAL_STATE = []; // Inicia vazio, seria populado por uma API
 
-        const MOCK_BOTS_DATA_INITIAL = [
-            { id: 'Joyca', name: 'Joyca', status: 'ativo', token: '7100827255:AAH4i1m56X-A-u06z1-yJ1w-oD123456789', linkedCampaigns: ['adset_1'], adAccountId: '507111372463621' }, // Adicionado adAccountId
-            { id: 'bot_beta', name: 'Bot Beta de Suporte', status: 'ativo', token: 'token_beta_456', linkedCampaigns: ['adset_2'], adAccountId: '507111372463621' },
-            { id: 'bot_gamma', name: 'Bot Gamma de Marketing', status: 'inativo', token: 'token_gamma_789', linkedCampaigns: [], adAccountId: '' },
-            { id: 'bot_delta', name: 'Bot Delta de Notificações', status: 'ativo', token: 'token_delta_abc', linkedCampaigns: [], adAccountId: '' },
-        ];
-
-        const MOCK_ADSETS_DATA = [
-            { id: 'adset_1', name: 'Conjunto de Anúncios Verão 2025 (Campanha 1)', status: 'ACTIVE', campaign_id: '1', objective: 'LEAD_GENERATION', spend: 350.50, impressions: 50000, clicks: 1200, account_id: '507111372463621' },
-            { id: 'adset_2', name: 'Conjunto de Anúncios Inverno 2025 (Campanha 1)', status: 'PAUSED', campaign_id: '1', objective: 'PURCHASE', spend: 120.00, impressions: 15000, clicks: 300, account_id: '507111372463621' },
-            { id: 'adset_3', name: 'Conjunto de Anúncios Oferta Relâmpago (Campanha 2)', status: 'ACTIVE', campaign_id: '2', objective: 'CONVERSION', spend: 800.00, impressions: 80000, clicks: 2500, account_id: '1421566932486575' },
-            { id: 'adset_4', name: 'Conjunto de Anúncios Black Friday (Campanha 3)', status: 'ACTIVE', campaign_id: '3', objective: 'CONVERSION', spend: 1200.00, impressions: 100000, clicks: 3000, account_id: '1767547067979139' },
-            { id: 'adset_5', name: 'Conjunto de Anúncios Natal (Campanha 3)', status: 'PAUSED', campaign_id: '3', objective: 'LEAD_GENERATION', spend: 50.00, impressions: 5000, clicks: 100, account_id: '1767547067979139' },
-        ];
-
-        const MOCK_ADS_DATA = [
-            { id: 'ad_1', name: 'Criativo Carrossel Produto A', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://placehold.co/150x150/FF6347/FFFFFF?text=Ad+1', spend: 200.00, impressions: 25000, clicks: 500 },
-            { id: 'ad_2', name: 'Criativo Vídeo Depoimento B', status: 'ACTIVE', adset_id: 'adset_1', preview_url: 'https://placehold.co/150x150/4682B4/FFFFFF?text=Ad+2', spend: 150.50, impressions: 25000, clicks: 700 },
-            { id: 'ad_3', name: 'Criativo Imagem Única Desconto', status: 'ACTIVE', adset_id: 'adset_3', preview_url: 'https://placehold.co/150x150/32CD32/FFFFFF?text=Ad+3', spend: 400.00, impressions: 40000, clicks: 1200 },
-            { id: 'ad_4', name: 'Criativo Story CTA', status: 'PAUSED', adset_id: 'adset_3', preview_url: 'https://placehold.co/150x150/FFD700/000000?text=Ad+4', spend: 400.00, impressions: 40000, clicks: 1300 },
-        ];
+        // Dados de Adsets e Ads (seriam carregados de APIs reais da Meta)
+        const ADSETS_DATA_INITIAL_STATE = []; // Inicia vazio, seria populado por uma API
+        const ADS_DATA_INITIAL_STATE = []; // Inicia vazio, seria populado por uma API
 
 
         // --- Componentes ---
@@ -326,7 +135,6 @@
                                 <li><a href="#" onClick={() => onNavigate('integrations')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'integrations' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plug mr-2"></i> Integrações</a></li>
                                 <li><a href="#" onClick={() => onNavigate('create-checkout')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'create-checkout' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plus-circle mr-2"></i> Criar Checkout</a></li>
                                 <li><a href="#" onClick={() => onNavigate('campaigns')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'campaigns' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-bullhorn mr-2"></i> Campanhas</a></li>
-                                <li><a href="#" onClick={() => onNavigate('developer')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'developer' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-code mr-2"></i> Desenvolvedor</a></li> {/* Novo link */}
                             </ul>
                         </nav>
                         <button
@@ -473,13 +281,13 @@
                                 onClick={() => onNavigate('signup')}
                                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center text-xl group"
                             >
-                                <i className="fas fa-user-plus mr-3 group-hover:animate-pulse"></i> Criar Minha Conta Grátis
+                                <i className="fas fa-rocket mr-3 group-hover:animate-bounce"></i> Comece Agora
                             </button>
                             <button
                                 onClick={() => onNavigate('login')}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center text-xl group"
                             >
-                                <i className="fas fa-sign-in-alt mr-3 group-hover:animate-bounce"></i> Fazer Login
+                                <i className="fas fa-sign-in-alt mr-3 group-hover:animate-pulse"></i> Já sou Cliente
                             </button>
                         </div>
                     </section>
@@ -683,43 +491,59 @@
             );
         }
 
-        // --- DASHBOARD Componente (1 - Atualizado com Gráfico) ---
-        function Dashboard() {
+        // --- DASHBOARD Componente (1 - Atualizado para buscar vendas reais) ---
+        function Dashboard({ showMessage }) {
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
-            const [salesData, setSalesData] = useState([]);
+            const [allSalesData, setAllSalesData] = useState([]); // Armazena todos os dados de vendas da API
+            const [filteredSalesData, setFilteredSalesData] = useState([]); // Dados de vendas filtrados para exibição
             const [campaignsData, setCampaignsData] = useState([]);
             const [chartData, setChartData] = useState({ labels: [], datasets: [] });
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
-
             const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
-            const defaultAccountId = "507111372463621";
+            const defaultAccountId = "507111372463621"; // Mantido hardcoded para demonstração da API Meta Ads
+            const API_BASE_URL = 'https://hotlead-api-production.up.railway.app/api';
+            const API_KEY = '715fdc00-ff3c-4180-bf4c-287783841da7';
 
-            const fetchMetrics = useCallback(async (start, end) => {
-                // Simulate fetching sales data
-                const filteredSales = MOCK_SALES_DATA.filter(sale => {
-                    const saleDate = new Date(sale.data_geracao); // Usar data_geracao para filtro
-                    const startObj = new Date(start + 'T00:00:00Z');
-                    const endObj = new Date(end + 'T23:59:59Z');
-                    return saleDate >= startObj && saleDate <= endObj;
-                });
-                setSalesData(filteredSales);
-
-                // Re-use CampaignPage's fetch logic for spending (SIMULADO)
-                // EM PRODUÇÃO: Este fetch seria para um endpoint do seu BACKEND,
-                // que por sua vez, chamaria a API da Meta de forma SEGURA.
+            // Função para buscar TODOS os dados de vendas da API
+            const fetchAllSales = useCallback(async () => {
                 try {
-                    // Exemplo de como a chamada ao backend ficaria:
-                    // const res = await fetch(`/api/meta-ads/insights/summary?accountId=${defaultAccountId}&startDate=${start}&endDate=${end}`, {
-                    //     headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-                    // });
-                    // const data = await res.json();
-                    // if (data.error) throw new Error(`Erro ao buscar gastos: ${data.error.message}`);
-                    // setCampaignsData(data.data || []);
+                    const response = await fetch(`${API_BASE_URL}/sales?page=1&per_page=1000`, { // Usando per_page=1000 para buscar mais dados
+                        method: 'GET',
+                        headers: {
+                            'x-api-key': API_KEY,
+                            'Content-Type': 'application/json',
+                        },
+                    });
 
-                    // MANTENDO A SIMULAÇÃO PARA FINS DE DEMONSTRAÇÃO DO CLIENTE:
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log("Dados brutos da API de Vendas (Dashboard):", data); // Log para depuração
+                    // Validar se data.data existe e é um array
+                    if (data && Array.isArray(data.data)) {
+                        setAllSalesData(data.data);
+                        if (data.data.length === 0) {
+                            showMessage("A API de vendas do Dashboard retornou 0 vendas. Verifique os dados no banco de dados.", 'info');
+                        }
+                    } else {
+                        throw new Error("Formato de dados da API de vendas do Dashboard inesperado. 'data.data' não é um array.");
+                    }
+                } catch (e) {
+                    console.error("Erro ao buscar todas as vendas para o dashboard:", e);
+                    showMessage(`Erro ao carregar dados de vendas: ${e.message}`, 'error');
+                    setAllSalesData([]);
+                }
+            }, [showMessage]);
+
+            // Função para buscar métricas de campanhas (gastos)
+            const fetchCampaignMetrics = useCallback(async (start, end) => {
+                try {
                     const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${defaultAccountId}/insights`);
                     urlInsights.searchParams.set("level", "account");
                     urlInsights.searchParams.set("fields", "spend");
@@ -728,14 +552,17 @@
 
                     const res = await fetch(urlInsights);
                     const data = await res.json();
+                    console.log("Dados brutos da API de Campanhas (Dashboard):", data); // Log para depuração
                     if (data.error) throw new Error(`Erro ao buscar gastos: ${data.error.message}`);
                     setCampaignsData(data.data || []);
                 } catch (e) {
                     console.error("Erro ao buscar gastos para o dashboard:", e);
+                    showMessage(`Erro ao carregar gastos de campanhas: ${e.message}`, 'error');
                     setCampaignsData([]);
                 }
-            }, [TOKEN]);
+            }, [TOKEN, showMessage]);
 
+            // Efeito inicial para carregar dados
             useEffect(() => {
                 const today = new Date();
                 const lastMonth = new Date(today);
@@ -746,12 +573,30 @@
 
                 setStartDate(defaultStartDate);
                 setEndDate(defaultEndDate);
-                fetchMetrics(defaultStartDate, defaultEndDate);
-            }, [fetchMetrics]);
+                
+                fetchAllSales(); // Busca todas as vendas
+                fetchCampaignMetrics(defaultStartDate, defaultEndDate); // Busca gastos com filtro de data
+            }, [fetchAllSales, fetchCampaignMetrics]);
+
+            // Efeito para filtrar os dados de vendas sempre que allSalesData ou as datas mudarem
+            useEffect(() => {
+                console.log("Filtrando dados de vendas para Dashboard...");
+                const startObj = new Date(startDate + 'T00:00:00Z');
+                const endObj = new Date(endDate + 'T23:59:59Z');
+
+                const filtered = allSalesData.filter(sale => {
+                    // Usando sale.generate_date conforme a API
+                    const saleDate = new Date(sale.generate_date);
+                    return saleDate >= startObj && saleDate <= endObj;
+                });
+                console.log("Dados de vendas filtrados (Dashboard):", filtered); // Log para depuração
+                setFilteredSalesData(filtered);
+            }, [allSalesData, startDate, endDate]);
+
 
             // Lógica para preparar dados para o gráfico
             useEffect(() => {
-                if (salesData.length === 0 && campaignsData.length === 0) {
+                if (filteredSalesData.length === 0 && campaignsData.length === 0) {
                     setChartData({ labels: [], datasets: [] });
                     return;
                 }
@@ -766,20 +611,20 @@
                     datesMap.set(dateKey, { sales: 0, spending: 0 });
                 }
 
-                // Agrega dados de vendas
-                salesData.forEach(sale => {
-                    const saleDateKey = new Date(sale.data_geracao).toISOString().slice(0, 10); // Usar data_geracao
+                // Agrega dados de vendas filtrados
+                filteredSalesData.forEach(sale => {
+                    const saleDateKey = new Date(sale.generate_date).toISOString().slice(0, 10); // Usando sale.generate_date
                     if (datesMap.has(saleDateKey)) {
-                        datesMap.get(saleDateKey).sales += sale.valor; // Usar valor
+                        datesMap.get(saleDateKey).sales += sale.value / 100; // Divide por 100 para converter centavos em reais
                     }
                 });
 
-                // Simula gastos diários com base no total de gastos
+                // Calcula gastos diários com base no total de gastos das campanhas
                 const totalSpendingForPeriod = campaignsData.reduce((sum, insight) => sum + parseFloat(insight.spend || 0), 0);
                 const daysInPeriod = Array.from(datesMap.keys()).length;
                 let simulatedDailySpendingBase = daysInPeriod > 0 ? totalSpendingForPeriod / daysInPeriod : 0;
 
-                // Para uma "saídas" mais dinâmica para o gráfico, distribua com alguma variação
+                // Distribui os gastos simulados com alguma variação
                 let currentSimulatedSpending = simulatedDailySpendingBase * 0.8;
                 const spendingValues = Array.from(datesMap.keys()).map((dateKey, index) => {
                     const variance = (Math.random() - 0.5) * simulatedDailySpendingBase * 0.5;
@@ -790,7 +635,7 @@
 
                 // Ajusta o último valor para que a soma total dos gastos simulados seja igual ao totalSpendingForPeriod
                 const currentTotalSimulatedSpending = spendingValues.reduce((sum, val) => sum + val, 0);
-                if (daysInPeriod > 0) {
+                if (daysInPeriod > 0 && currentTotalSimulatedSpending > 0) { // Evita divisão por zero
                     const adjustmentFactor = totalSpendingForPeriod / currentTotalSimulatedSpending;
                     for (let i = 0; i < spendingValues.length; i++) {
                         spendingValues[i] *= adjustmentFactor;
@@ -840,7 +685,7 @@
                         },
                     ],
                 });
-            }, [salesData, campaignsData, startDate, endDate]);
+            }, [filteredSalesData, campaignsData, startDate, endDate]);
 
             // Efeito para renderizar/atualizar o gráfico Chart.js
             useEffect(() => {
@@ -906,23 +751,34 @@
             }, [chartData]);
 
 
-            const totalSales = salesData.reduce((sum, sale) => sum + sale.valor, 0); // Usar sale.valor
+            // Calcula o total de vendas PAGO para o dashboard
+            const totalSalesPaid = filteredSalesData.filter(s => s.status === 'PAGO').reduce((sum, sale) => sum + sale.value / 100, 0);
             const totalSpending = campaignsData.reduce((sum, insight) => sum + parseFloat(insight.spend || 0), 0);
-            const totalProfit = totalSales - totalSpending;
+            const totalProfit = totalSalesPaid - totalSpending; // Lucro baseado apenas em vendas pagas
 
             // Group sales and spending by bot for per-bot metrics
-            const botsMetrics = MOCK_BOTS_DATA_INITIAL.map(bot => { // Use MOCK_BOTS_DATA_INITIAL for dashboard
-                const botSales = MOCK_SALES_DATA.filter(sale => sale.modelo === bot.id); // Usar sale.modelo
-                const botRevenue = botSales.reduce((sum, sale) => sum + sale.valor, 0); // Usar sale.valor
+            // Nota: Os dados de bots e adsets ainda seriam carregados de APIs reais em um ambiente de produção.
+            // Para esta demonstração, os bots são inicializados como vazios e adicionados via UI.
+            const botsMetrics = BOTS_DATA_INITIAL_STATE.map(bot => { // Usando o estado inicial de bots (vazio)
+                const botSales = filteredSalesData.filter(sale => sale.model === bot.id); // Usando sale.model
+                const botRevenue = botSales.reduce((sum, sale) => sum + sale.value / 100, 0); // Usando sale.value e dividindo por 100
                 
-                // Calculate spending based on linked campaigns (adsets)
-                const simulatedBotSpending = MOCK_ADSETS_DATA.filter(adset =>
-                    bot.linkedCampaigns && bot.linkedCampaigns.includes(adset.id)
-                ).reduce((sum, adset) => sum + adset.spend, 0);
+                // Calcula gastos com base nas campanhas vinculadas
+                // Como MOCK_ADSETS_DATA foi removido, esta parte precisaria de dados reais de adsets.
+                const simulatedBotSpending = 0; // Não há dados de adsets mockados para simular gastos por bot
+                // ADSETS_DATA_INITIAL_STATE.filter(adset =>
+                //     bot.linkedCampaigns && bot.linkedCampaigns.includes(adset.id)
+                // ).reduce((sum, adset) => sum + adset.spend, 0);
 
                 const botProfit = botRevenue - simulatedBotSpending;
                 return { ...bot, revenue: botRevenue, spending: simulatedBotSpending, profit: botProfit };
             });
+
+            const handleApplyFilters = () => {
+                // Ao clicar em "Atualizar", apenas re-filtra os dados de vendas já carregados
+                // e busca novamente os dados de campanha da Meta Ads com o novo período.
+                fetchCampaignMetrics(startDate, endDate);
+            };
 
             return (
                 <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
@@ -951,7 +807,7 @@
                             />
                         </div>
                         <button
-                            onClick={() => fetchMetrics(startDate, endDate)}
+                            onClick={handleApplyFilters}
                             className="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-2.5 px-6 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center group"
                         >
                             <i className="fas fa-sync-alt mr-2 rotate-on-hover"></i>
@@ -963,8 +819,8 @@
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center text-center">
                             <i className="fas fa-dollar-sign text-5xl text-blue-400 mb-3"></i>
-                            <h3 className="text-xl font-bold mb-2">Vendas Totais</h3>
-                            <p className="text-gray-300 text-2xl font-semibold">{formatCurrency(totalSales)}</p>
+                            <h3 className="text-xl font-bold mb-2">Vendas Totais (Pagos)</h3>
+                            <p className="text-gray-300 text-2xl font-semibold">{formatCurrency(totalSalesPaid)}</p> {/* Corrigido: não multiplica por 100 aqui */}
                         </div>
                         <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center text-center">
                             <i className="fas fa-hand-holding-usd text-5xl text-red-400 mb-3"></i>
@@ -988,63 +844,129 @@
 
                     {/* Bots Ativos Section */}
                     <h3 className="text-2xl font-bold text-blue-300 mb-4">Bots Ativos e Métricas</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {botsMetrics.map(bot => (
-                            <div key={bot.id} className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg border border-gray-500">
-                                <h4 className="text-xl font-semibold mb-2 text-white">{bot.name} ({bot.status === 'ativo' ? 'Ativo' : 'Inativo'})</h4>
-                                <div className="grid grid-cols-2 gap-y-2 text-gray-300">
-                                    <p><strong>Faturamento:</strong> <span className="text-green-300">{formatCurrency(bot.revenue)}</span></p>
-                                    <p><strong>Gastos:</strong> <span className="text-red-300">{formatCurrency(bot.spending)}</span></p>
-                                    <p><strong>Lucro:</strong> <span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></p>
-                                    <p><strong>Vendas:</strong> <span className="text-blue-300">{MOCK_SALES_DATA.filter(s => s.modelo === bot.id).length}</span></p>
+                    {BOTS_DATA_INITIAL_STATE.length > 0 ? ( // Verifica se há bots para exibir
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {botsMetrics.map(bot => (
+                                <div key={bot.id} className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg border border-gray-500">
+                                    <h4 className="text-xl font-semibold mb-2 text-white">{bot.name} ({bot.status === 'ativo' ? 'Ativo' : 'Inativo'})</h4>
+                                    <div className="grid grid-cols-2 gap-y-2 text-gray-300">
+                                        <p><strong>Faturamento:</strong> <span className="text-green-300">{formatCurrency(bot.revenue)}</span></p> {/* Corrigido: não multiplica por 100 aqui */}
+                                        <p><strong>Gastos:</strong> <span className="text-red-300">{formatCurrency(bot.spending)}</span></p>
+                                        <p><strong>Lucro:</strong> <span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></p>
+                                        <p><strong>Vendas:</strong> <span className="text-blue-300">{filteredSalesData.filter(s => s.model === bot.id).length}</span></p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-center text-gray-400 py-4">Nenhum bot configurado. Adicione bots na página "Bots" para ver as métricas.</p>
+                    )}
                 </div>
             );
         }
 
-        // --- VENDAS Componente (2 - Atualizado para o formato da planilha) ---
-        function SalesPage() {
+        // --- VENDAS Componente (2 - AGORA COM API REAL E FILTRO NO FRONT) ---
+        function SalesPage({ showMessage }) {
+            const [allSalesData, setAllSalesData] = useState([]); // Armazena todos os dados de vendas da API
+            const [filteredSales, setFilteredSales] = useState([]); // Dados de vendas filtrados para exibição
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
-            const [filteredSales, setFilteredSales] = useState([]);
-            const [selectedBot, setSelectedBot] = useState('all'); // 'all' or botId (now 'modelo')
+            const [selectedBot, setSelectedBot] = useState('all');
+            const [botsList, setBotsList] = useState([]); // Usado para popular o filtro de bots
 
+            // API Constants
+            const API_BASE_URL = 'https://hotlead-api-production.up.railway.app/api';
+            const API_KEY = '715fdc00-ff3c-4180-bf4c-287783841da7';
+
+            // Função para buscar TODOS os dados de vendas da API
+            const fetchAllSales = useCallback(async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/sales?page=1&per_page=1000`, { // Usando per_page=1000 para buscar mais dados
+                        method: 'GET',
+                        headers: {
+                            'x-api-key': API_KEY,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log("Dados brutos da API de Vendas (SalesPage):", data); // Log para depuração
+
+                    // Validar se data.data existe e é um array
+                    if (data && Array.isArray(data.data)) {
+                        setAllSalesData(data.data);
+                        console.log("Vendas carregadas:", data.data.length);
+
+                        // Extrai modelos únicos para o filtro de bots
+                        const uniqueModels = [...new Set(data.data.map(sale => sale.model))].map(model => ({ id: model, name: model }));
+                        setBotsList(uniqueModels);
+
+                        if (data.data.length === 0) {
+                            showMessage("A API retornou 0 vendas. Verifique os dados no banco de dados ou os filtros aplicados.", 'info');
+                        }
+                    } else {
+                        throw new Error("Formato de dados da API inesperado. 'data.data' não é um array ou está ausente.");
+                    }
+                } catch (e) {
+                    setError(e);
+                    showMessage(`Erro ao buscar vendas: ${e.message}`, 'error');
+                    setAllSalesData([]);
+                    setBotsList([]);
+                } finally {
+                    setLoading(false);
+                }
+            }, [showMessage]);
+
+            // Efeito inicial para carregar todos os dados de vendas
+            useEffect(() => {
+                fetchAllSales();
+            }, [fetchAllSales]);
+
+            // Efeito para aplicar filtros sempre que allSalesData ou os parâmetros de filtro mudarem
+            useEffect(() => {
+                console.log("Filtrando dados de vendas para SalesPage...");
+                const startObj = new Date(startDate + 'T00:00:00Z');
+                const endObj = new Date(endDate + 'T23:59:59Z');
+
+                const results = allSalesData.filter(sale => {
+                    // Usando sale.generate_date conforme a API
+                    const saleDate = new Date(sale.generate_date);
+                    const isInDateRange = saleDate >= startObj && saleDate <= endObj;
+                    // Usando sale.model conforme a API
+                    const matchesBot = selectedBot === 'all' || sale.model === selectedBot;
+                    return isInDateRange && matchesBot;
+                });
+                console.log("Dados de vendas filtrados (SalesPage):", results); // Log para depuração
+                setFilteredSales(results.sort((a,b) => new Date(b.generate_date) - new Date(a.generate_date))); // Usando generate_date para ordenação
+            }, [allSalesData, startDate, endDate, selectedBot]);
+
+            // Define as datas padrão para os últimos 30 dias na montagem do componente
             useEffect(() => {
                 const today = new Date();
                 const lastMonth = new Date(today);
                 lastMonth.setDate(today.getDate() - 30);
 
-                const defaultEndDate = today.toISOString().slice(0, 10);
-                const defaultStartDate = lastMonth.toISOString().slice(0, 10);
-
-                setStartDate(defaultStartDate);
-                setEndDate(defaultEndDate);
-                applyFilters(defaultStartDate, defaultEndDate, 'all');
-            }, []);
-
-            const applyFilters = (start, end, bot) => {
-                const startObj = new Date(start + 'T00:00:00Z');
-                const endObj = new Date(end + 'T23:59:59Z');
-
-                const results = MOCK_SALES_DATA.filter(sale => {
-                    const saleDate = new Date(sale.data_geracao); // Filtrar pela data de geração
-                    const isInDateRange = saleDate >= startObj && saleDate <= endObj;
-                    const matchesBot = bot === 'all' || sale.modelo === bot; // Usar sale.modelo
-                    return isInDateRange && matchesBot;
-                });
-                setFilteredSales(results.sort((a,b) => new Date(b.data_geracao) - new Date(a.data_geracao))); // Ordenar pela data de geração
-            };
+                setEndDate(today.toISOString().slice(0, 10));
+                setStartDate(lastMonth.toISOString().slice(0, 10));
+            }, []); // Executa apenas uma vez na montagem
 
             const handleFilterChange = () => {
-                applyFilters(startDate, endDate, selectedBot);
+                // A filtragem já acontece no useEffect acima quando startDate, endDate ou selectedBot mudam
+                // Não é necessário chamar fetchAllSales novamente, pois os dados já estão em allSalesData
             };
 
             const totalPixGenerated = filteredSales.filter(s => s.status === 'AGUARDANDO_PAGAMENTO').length;
             const totalPixPaid = filteredSales.filter(s => s.status === 'PAGO').length;
-            const totalAmountPaid = filteredSales.filter(s => s.status === 'PAGO').reduce((sum, s) => sum + s.valor, 0); // Usar s.valor
+            const totalAmountPaid = filteredSales.filter(s => s.status === 'PAGO').reduce((sum, s) => sum + s.value / 100, 0); // Usando s.value e dividindo por 100
 
             return (
                 <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
@@ -1081,7 +1003,7 @@
                                 className="bg-gray-600 border border-gray-500 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
                             >
                                 <option value="all">Todos os Modelos</option>
-                                {MOCK_BOTS_DATA_INITIAL.map(bot => (
+                                {botsList.map(bot => ( // Usando a lista de bots extraída da API
                                     <option key={bot.id} value={bot.id}>{bot.name}</option>
                                 ))}
                             </select>
@@ -1107,14 +1029,18 @@
                         </div>
                         <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg">
                             <h3 className="text-xl font-bold mb-2 text-purple-300">Valor Total Pago</h3>
-                            <p className="text-white text-3xl font-semibold">{formatCurrency(totalAmountPaid)}</p>
+                            <p className="text-white text-3xl font-semibold">{formatCurrency(totalAmountPaid)}</p> {/* Corrigido: não multiplica por 100 aqui */}
                         </div>
                     </div>
 
                     {/* Sales List */}
                     <h3 className="text-2xl font-bold text-blue-300 mb-4">Detalhes das Vendas ({filteredSales.length} resultados)</h3>
                     <div className="table-container bg-gray-600 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
-                        {filteredSales.length === 0 ? (
+                        {loading ? (
+                            <p className="p-4 text-center text-gray-300"><i className="fas fa-spinner fa-spin mr-2"></i> Carregando vendas...</p>
+                        ) : error ? (
+                            <p className="p-4 text-center text-red-400">Erro ao carregar vendas: {error.message}</p>
+                        ) : filteredSales.length === 0 ? (
                             <p className="p-4 text-center text-gray-300">Nenhuma venda encontrada para os filtros selecionados.</p>
                         ) : (
                             <table className="custom-table">
@@ -1132,12 +1058,13 @@
                                 </thead>
                                 <tbody>
                                     {filteredSales.map(sale => (
-                                        <tr key={sale.codigo_pix}>
-                                            <td className="truncate-text max-w-[80px]">{sale.modelo}</td>
-                                            <td className="truncate-text max-w-[150px]">{sale.campanha}</td>
-                                            <td className="truncate-text max-w-[120px]">{sale.codigo_pix}</td>
-                                            <td>{formatCurrency(sale.valor)}</td>
-                                            <td>{sale.data_pagamento ? formatDate(sale.data_pagamento) : '-'}</td>
+                                        <tr key={sale.pix_code}> {/* Usando pix_code como key, pois é único */}
+                                            <td>{sale.model}</td> {/* Usando sale.model */}
+                                            <td>{sale.campaign}</td> {/* Usando sale.campaign */}
+                                            <td>{sale.pix_code}</td> {/* Usando sale.pix_code */}
+                                            <td>{formatCurrency(sale.value)}</td> {/* Usando sale.value */}
+                                            <td>{formatDate(sale.generate_date)}</td> {/* Usando sale.generate_date */}
+                                            <td>{sale.payment_date ? formatDate(sale.payment_date) : '-'}</td> {/* Usando sale.payment_date */}
                                             <td>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${sale.status === 'PAGO' ? 'bg-green-500 text-gray-900' : 'bg-orange-500 text-gray-900'}`}>
                                                     {sale.status}
@@ -1230,6 +1157,7 @@
             };
 
             // Filter ad sets based on selectedAdAccountId
+            // allAdSets agora virá de um estado vazio, então filteredAdSets também será vazio
             const filteredAdSets = allAdSets.filter(adset => adset.account_id === selectedAdAccountId);
 
             return (
@@ -1285,11 +1213,17 @@
                                 className="w-full bg-gray-600 border border-gray-500 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
                             >
                                 <option value="">Selecione uma Conta de Anúncios</option>
+                                {/* allAdAccounts agora é um array vazio, então este dropdown estará vazio */}
                                 {allAdAccounts.map(account => (
-                                    <option key={account.id} value={account.id}>{account.name}</option>
+                                    <option key={account.id} value={account.id}>
+                                        {account.name} (ID: {account.id})
+                                    </option>
                                 ))}
                             </select>
                             {!selectedAdAccountId && <p className="text-red-400 text-sm mt-2">Por favor, selecione uma conta de anúncios para vincular campanhas.</p>}
+                            <p className="text-gray-400 text-sm mt-3">
+                                <i className="fas fa-info-circle mr-1"></i> As contas de anúncios precisam ser carregadas de uma API real.
+                            </p>
                         </div>
 
 
@@ -1318,7 +1252,7 @@
                                 <p className="text-gray-400">Selecione uma conta de anúncios acima para ver as campanhas disponíveis.</p>
                             )}
                             <p className="text-gray-400 text-sm mt-3">
-                                Os conjuntos de anúncios vinculados serão usados para calcular os gastos específicos deste bot.
+                                <i className="fas fa-info-circle mr-1"></i> Os conjuntos de anúncios precisam ser carregados de uma API real da Meta.
                             </p>
                         </div>
 
@@ -1345,7 +1279,7 @@
 
         // --- BOTS Componente (3) ---
         function BotsPage({ showMessage }) {
-            const [bots, setBots] = useState(MOCK_BOTS_DATA_INITIAL);
+            const [bots, setBots] = useState(BOTS_DATA_INITIAL_STATE); // Inicia com estado vazio
             const [newBotToken, setNewBotToken] = useState('');
             const [loadingBotId, setLoadingBotId] = useState(null); // Para indicar qual bot está sendo consultado
             const [selectedBot, setSelectedBot] = useState(null); // Bot selecionado para configuração
@@ -1389,13 +1323,15 @@
 
             // Recalcula métricas dos bots sempre que houver mudança nos dados simulados
             const botsWithMetrics = bots.map(bot => {
-                const botSales = MOCK_SALES_DATA.filter(sale => sale.modelo === bot.id); // Usar sale.modelo
-                const botRevenue = botSales.reduce((sum, sale) => sum + sale.valor, 0); // Usar sale.valor
+                const botSales = []; // Vendas reais por bot precisariam de uma API de vendas que filtre por modelo de bot
+                const botRevenue = botSales.reduce((sum, sale) => sum + sale.value / 100, 0); // Divide por 100
 
                 // Calcula gastos com base nas campanhas vinculadas
-                const simulatedBotSpending = MOCK_ADSETS_DATA.filter(adset =>
-                    bot.linkedCampaigns && bot.linkedCampaigns.includes(adset.id)
-                ).reduce((sum, adset) => sum + adset.spend, 0);
+                // Como MOCK_ADSETS_DATA foi removido, esta parte precisaria de dados reais de adsets.
+                const simulatedBotSpending = 0; // Não há dados de adsets mockados para simular gastos por bot
+                // ADSETS_DATA_INITIAL_STATE.filter(adset =>
+                //     bot.linkedCampaigns && bot.linkedCampaigns.includes(adset.id)
+                // ).reduce((sum, adset) => sum + adset.spend, 0);
 
                 const botProfit = botRevenue - simulatedBotSpending;
                 return { ...bot, revenue: botRevenue, spending: simulatedBotSpending, profit: botProfit };
@@ -1487,68 +1423,76 @@
                                 {loadingBotId === 'new' ? 'Adicionando...' : 'Adicionar Bot'}
                             </button>
                         </form>
+                        <p className="text-gray-400 text-sm mt-3">
+                            <i className="fas fa-info-circle mr-1"></i> Bots adicionados aqui não serão persistidos sem um backend.
+                        </p>
                     </div>
 
                     {/* Bots List */}
                     <h3 className="text-2xl font-bold text-blue-300 mb-4">Bots Ativos e Inativos ({bots.length})</h3>
                     <div className="table-container bg-gray-600 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
-                        <table className="custom-table">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>ID</th>
-                                    <th>Status</th>
-                                    <th>Faturamento</th>
-                                    <th>Gastos</th>
-                                    <th>Lucro</th>
-                                    <th>Campanhas Vinculadas</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {botsWithMetrics.map(bot => (
-                                    <tr key={bot.id} className="cursor-pointer hover:bg-gray-700" onClick={() => handleOpenConfigModal(bot)}>
-                                        <td className="truncate-text max-w-[180px]">{bot.name}</td>
-                                        <td className="truncate-text max-w-[120px]">{bot.id}</td>
-                                        <td>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${bot.status === 'ativo' ? 'bg-green-500 text-gray-900' : 'bg-red-500 text-white'}`}>
-                                                {bot.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                                            </span>
-                                        </td>
-                                        <td>{formatCurrency(bot.revenue)}</td>
-                                        <td>{formatCurrency(bot.spending)}</td>
-                                        <td><span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></td>
-                                        <td>
-                                            {bot.linkedCampaigns && bot.linkedCampaigns.length > 0 ? (
-                                                <ul className="list-disc list-inside text-sm text-gray-300">
-                                                    {bot.linkedCampaigns.map(campaignId => {
-                                                        const campaign = MOCK_ADSETS_DATA.find(c => c.id === campaignId);
-                                                        return <li key={campaignId} className="truncate-text max-w-[150px]">{campaign ? campaign.name : campaignId}</li>;
-                                                    })}
-                                                </ul>
-                                            ) : (
-                                                <span className="text-gray-400 text-sm italic">Nenhuma</span>
-                                            )}
-                                        </td>
-                                        <td>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleOpenConfigModal(bot); }}
-                                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-sm transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
-                                            >
-                                                <i className="fas fa-cog mr-1"></i> Configurar
-                                            </button>
-                                        </td>
+                        {bots.length === 0 ? (
+                            <p className="p-4 text-center text-gray-300">Nenhum bot configurado. Adicione um bot usando o formulário acima.</p>
+                        ) : (
+                            <table className="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>ID</th>
+                                        <th>Status</th>
+                                        <th>Faturamento</th>
+                                        <th>Gastos</th>
+                                        <th>Lucro</th>
+                                        <th>Campanhas Vinculadas</th>
+                                        <th>Ações</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {botsWithMetrics.map(bot => (
+                                        <tr key={bot.id} className="cursor-pointer hover:bg-gray-700" onClick={() => handleOpenConfigModal(bot)}>
+                                            <td className="truncate-text max-w-[180px]">{bot.name}</td>
+                                            <td className="truncate-text max-w-[120px]">{bot.id}</td>
+                                            <td>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${bot.status === 'ativo' ? 'bg-green-500 text-gray-900' : 'bg-red-500 text-white'}`}>
+                                                    {bot.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                                                </span>
+                                            </td>
+                                            <td>{formatCurrency(bot.revenue)}</td> {/* Corrigido: não multiplica por 100 aqui */}
+                                            <td>{formatCurrency(bot.spending)}</td>
+                                            <td><span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></td>
+                                            <td>
+                                                {bot.linkedCampaigns && bot.linkedCampaigns.length > 0 ? (
+                                                    <ul className="list-disc list-inside text-sm text-gray-300">
+                                                        {/* allAdSets agora é um estado vazio, então não haverá nomes de campanha */}
+                                                        {bot.linkedCampaigns.map(campaignId => {
+                                                            // const campaign = ADSETS_DATA_INITIAL_STATE.find(c => c.id === campaignId);
+                                                            return <li key={campaignId} className="truncate-text max-w-[150px]">{campaignId}</li>;
+                                                        })}
+                                                    </ul>
+                                                ) : (
+                                                    <span className="text-gray-400 text-sm italic">Nenhuma</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleOpenConfigModal(bot); }}
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-sm transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+                                                >
+                                                    <i className="fas fa-cog mr-1"></i> Configurar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
 
                     {isConfigModalOpen && selectedBot && (
                         <BotConfigurationModal
                             bot={selectedBot}
-                            allAdAccounts={MOCK_AD_ACCOUNTS}
-                            allAdSets={MOCK_ADSETS_DATA}
+                            allAdAccounts={AD_ACCOUNTS_INITIAL_STATE} // Passa o estado vazio
+                            allAdSets={ADSETS_DATA_INITIAL_STATE} // Passa o estado vazio
                             onClose={handleCloseConfigModal}
                             onSaveConfig={handleSaveBotConfig}
                             showMessage={showMessage}
@@ -1688,15 +1632,15 @@
             const [ads, setAds] = useState([]);
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState(null);
-            const [accountId, setAccountId] = useState("507111372463621");
+            const [adAccounts, setAdAccounts] = useState([]); // Estado para armazenar as contas de anúncio reais
+            const [selectedAccountId, setSelectedAccountId] = useState(''); // Conta de anúncio selecionada
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
             const [activeTab, setActiveTab] = useState('campaigns');
+            const [selectedCampaign, setSelectedCampaign] = useState(null); // Novo estado para a campanha clicada
 
             // **ATENÇÃO: MANTER ESTE TOKEN NO CLIENTE NÃO É SEGURO PARA PRODUÇÃO.**
             const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
-
-            const contas = MOCK_AD_ACCOUNTS; // Usar o mock global
 
             const renderStatus = useCallback((status) => {
                 if (!status) return null;
@@ -1732,65 +1676,135 @@
                 );
             }, []);
 
+            // Função para buscar as contas de anúncio do usuário
+            const fetchAdAccounts = useCallback(async () => {
+                try {
+                    const url = new URL(`https://graph.facebook.com/v19.0/me/adaccounts`);
+                    url.searchParams.set("fields", "id,name");
+                    url.searchParams.set("access_token", TOKEN);
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    console.log("Raw ad account data:", data); // Debugging
+                    if (data.error) throw new Error(`API Contas de Anúncio: ${data.error.message}`);
+                    setAdAccounts(data.data || []);
+                    // Define a primeira conta como selecionada por padrão, se houver
+                    if (data.data && data.data.length > 0) {
+                        console.log("First ad account ID:", data.data[0].id); // Debugging
+                        setSelectedAccountId(data.data[0].id);
+                    }
+                } catch (err) {
+                    console.error("Erro ao carregar contas de anúncio:", err);
+                    showMessage(`Erro ao carregar contas de anúncio: ${err.message}`, 'error');
+                    setAdAccounts([]);
+                }
+            }, [TOKEN, showMessage]);
+
 
             const fetchCampaignsData = useCallback(async (currentAccountId, since, until) => {
+                if (!currentAccountId) {
+                    setCampaigns([]);
+                    setAdsets([]);
+                    setAds([]);
+                    return;
+                }
+
                 setLoading(true);
                 setError(null);
                 try {
+                    // Ensure the accountId is just the numeric part
+                    const cleanAccountId = currentAccountId.startsWith('act_') ? currentAccountId.substring(4) : currentAccountId;
+                    console.log("Fetching data for clean account ID:", cleanAccountId); // Debugging
+
                     // Fetch Campaigns and their insights
-                    const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${currentAccountId}/campaigns`);
+                    const urlCampaigns = new URL(`https://graph.facebook.com/v19.0/act_${cleanAccountId}/campaigns`);
                     urlCampaigns.searchParams.set("fields", "id,name,status,effective_status,start_time,stop_time");
                     urlCampaigns.searchParams.set("limit", "200");
                     urlCampaigns.searchParams.set("access_token", TOKEN);
 
-                    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${currentAccountId}/insights`);
-                    urlInsights.searchParams.set("level", "campaign");
-                    urlInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
-                    urlInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
-                    urlInsights.searchParams.set("limit", "500");
-                    urlInsights.searchParams.set("access_token", TOKEN);
+                    const urlCampaignInsights = new URL(`https://graph.facebook.com/v19.0/act_${cleanAccountId}/insights`);
+                    urlCampaignInsights.searchParams.set("level", "campaign");
+                    urlCampaignInsights.searchParams.set("fields", "campaign_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
+                    urlCampaignInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
+                    urlCampaignInsights.searchParams.set("limit", "500");
+                    urlCampaignInsights.searchParams.set("access_token", TOKEN); // Corrected: ensure access_token is set
 
-                    const [campRes, insightsRes] = await Promise.all([
-                        fetch(urlCampaigns),
-                        fetch(urlInsights)
+                    // Fetch Ad Sets and their insights
+                    const urlAdsets = new URL(`https://graph.facebook.com/v19.0/act_${cleanAccountId}/adsets`);
+                    urlAdsets.searchParams.set("fields", "id,name,status,effective_status,campaign_id,objective,start_time,stop_time");
+                    urlAdsets.searchParams.set("limit", "200");
+                    urlAdsets.searchParams.set("access_token", TOKEN); // Corrected: ensure access_token is set
+
+                    const urlAdsetInsights = new URL(`https://graph.facebook.com/v19.0/act_${cleanAccountId}/insights`);
+                    urlAdsetInsights.searchParams.set("level", "adset");
+                    urlAdsetInsights.searchParams.set("fields", "adset_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
+                    urlAdsetInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
+                    urlAdsetInsights.searchParams.set("limit", "500");
+                    urlAdsetInsights.searchParams.set("access_token", TOKEN); // Corrected: ensure access_token is set
+
+                    // Fetch Ads and their insights
+                    const urlAds = new URL(`https://graph.facebook.com/v19.0/act_${cleanAccountId}/ads`);
+                    urlAds.searchParams.set("fields", "id,name,status,effective_status,adset_id,preview_url");
+                    urlAds.searchParams.set("limit", "200");
+                    urlAds.searchParams.set("access_token", TOKEN); // Corrected: ensure access_token is set
+
+                    const urlAdInsights = new URL(`https://graph.facebook.com/v19.0/act_${cleanAccountId}/insights`);
+                    urlAdInsights.searchParams.set("level", "ad");
+                    urlAdInsights.searchParams.set("fields", "ad_id,impressions,clicks,spend,actions,ctr,cpc,cpm");
+                    urlAdInsights.searchParams.set("time_range", JSON.stringify({ since, until }));
+                    urlAdInsights.searchParams.set("limit", "500");
+                    urlAdInsights.searchParams.set("access_token", TOKEN); // Corrected: ensure access_token is set
+
+
+                    const [
+                        campRes, campInsightsRes,
+                        adsetRes, adsetInsightsRes,
+                        adsRes, adsInsightsRes
+                    ] = await Promise.all([
+                        fetch(urlCampaigns), fetch(urlCampaignInsights),
+                        fetch(urlAdsets), fetch(urlAdsetInsights),
+                        fetch(urlAds), fetch(urlAdInsights)
                     ]);
 
                     const campData = await campRes.json();
-                    const insightsData = await insightsRes.json();
+                    const campInsightsData = await campInsightsRes.json();
+                    const adsetData = await adsetRes.json();
+                    const adsetInsightsData = await adsetInsightsRes.json();
+                    const adsData = await adsRes.json();
+                    const adsInsightsData = await adsInsightsRes.json();
 
                     if (campData.error) throw new Error(`API Campanhas: ${campData.error.message}`);
-                    if (insightsData.error) throw new Error(`API Insights: ${insightsData.error.message}`);
+                    if (campInsightsData.error) throw new Error(`API Insights Campanhas: ${campInsightsData.error.message}`);
+                    if (adsetData.error) throw new Error(`API Conjuntos de Anúncios: ${adsetData.error.message}`);
+                    if (adsetInsightsData.error) throw new Error(`API Insights Conjuntos de Anúncios: ${adsetInsightsData.error.message}`);
+                    if (adsData.error) throw new Error(`API Anúncios: ${adsData.error.message}`);
+                    if (adsInsightsData.error) throw new Error(`API Insights Anúncios: ${adsInsightsData.error.message}`);
 
-                    const insightsMap = {};
-                    (insightsData.data || []).forEach(i => {
-                        insightsMap[i.campaign_id] = i;
-                    });
-
+                    // Combine campaigns with their insights
+                    const campInsightsMap = {};
+                    (campInsightsData.data || []).forEach(i => { campInsightsMap[i.campaign_id] = i; });
                     const combinedCampaigns = (campData.data || []).map(camp => ({
                         ...camp,
-                        insights: insightsMap[camp.id] || {}
+                        insights: campInsightsMap[camp.id] || {}
                     }));
                     setCampaigns(combinedCampaigns);
 
-                    // --- SIMULAÇÃO: Fetch Ad Sets e Ads ---
-                    // Em um ambiente real, você faria chamadas API similares para adsets e ads,
-                    // mas a API do Meta Ads tem limites e a estrutura das chamadas é mais complexa.
-                    // Estou usando dados mockados para 'adsets' e 'ads' por simplificação aqui.
-                    const simulatedAdsets = MOCK_ADSETS_DATA.map(adset => ({
+                    // Combine ad sets with their insights
+                    const adsetInsightsMap = {};
+                    (adsetInsightsData.data || []).forEach(i => { adsetInsightsMap[i.adset_id] = i; });
+                    const combinedAdsets = (adsetData.data || []).map(adset => ({
                         ...adset,
-                        insights: MOCK_ADSETS_DATA.find(i => i.id === adset.id) || {} // Simplified insight mapping
-                    })).filter(adset =>
-                        combinedCampaigns.some(camp => camp.id === adset.campaign_id) // Filter adsets for fetched campaigns
-                    );
-                    setAdsets(simulatedAdsets);
+                        insights: adsetInsightsMap[adset.id] || {}
+                    }));
+                    setAdsets(combinedAdsets);
 
-                    const simulatedAds = MOCK_ADS_DATA.map(ad => ({
+                    // Combine ads with their insights
+                    const adsInsightsMap = {};
+                    (adsInsightsData.data || []).forEach(i => { adsInsightsMap[i.ad_id] = i; });
+                    const combinedAds = (adsData.data || []).map(ad => ({
                         ...ad,
-                        insights: MOCK_ADS_DATA.find(i => i.id === ad.id) || {} // Simplified insight mapping
-                    })).filter(ad =>
-                        simulatedAdsets.some(adset => adset.id === ad.adset_id) // Filter ads for fetched adsets
-                    );
-                    setAds(simulatedAds);
+                        insights: adsInsightsMap[ad.id] || {}
+                    }));
+                    setAds(combinedAds);
 
                 } catch (err) {
                     setError(err.message);
@@ -1802,62 +1816,119 @@
             }, [TOKEN, showMessage]);
 
             useEffect(() => {
+                // Carrega as contas de anúncio na montagem do componente
+                fetchAdAccounts();
+
                 const today = new Date();
                 const lastWeek = new Date(today);
                 lastWeek.setDate(today.getDate() - 7);
 
                 const defaultEndDate = today.toISOString().slice(0, 10);
-                const defaultStartDate = lastWeek.toISOString().slice(0, 10);
+                const defaultStartDate = lastWeek.toISOString().slice(0, 10); // Define a data de início para o começo do dia
 
                 setStartDate(defaultStartDate);
                 setEndDate(defaultEndDate);
-                fetchCampaignsData(accountId, defaultStartDate, defaultEndDate);
-            }, [accountId, fetchCampaignsData]);
+            }, [fetchAdAccounts]);
+
+            // Efeito para buscar dados de campanhas quando a conta selecionada ou as datas mudam
+            useEffect(() => {
+                if (selectedAccountId && startDate && endDate) {
+                    fetchCampaignsData(selectedAccountId, startDate, endDate);
+                }
+            }, [selectedAccountId, startDate, endDate, fetchCampaignsData]);
+
 
             const handleRefresh = () => {
-                if (!accountId || !startDate || !endDate) {
+                if (!selectedAccountId || !startDate || !endDate) {
                     showMessage("Por favor, selecione a conta e as datas.", 'warning');
                     return;
                 }
-                fetchCampaignsData(accountId, startDate, endDate);
+                // Reseta a campanha selecionada ao atualizar os dados gerais
+                setSelectedCampaign(null);
+                fetchCampaignsData(selectedAccountId, startDate, endDate);
+            };
+
+            const handleCampaignClick = (campaign) => {
+                setSelectedCampaign(campaign);
+                setActiveTab('adsets'); // Mudar para a aba de conjuntos de anúncios ao clicar na campanha
+            };
+
+            const handleBackToAllCampaigns = () => {
+                setSelectedCampaign(null);
+                setActiveTab('campaigns'); // Volta para a aba de campanhas
             };
 
             const renderDataCards = (data, type) => {
-                if (data.length === 0) {
-                    return <p className="text-center text-gray-400 py-8">Nenhum {type} encontrado(a) para o período e conta selecionados.</p>;
+                let displayData = data;
+                let title = '';
+
+                if (selectedCampaign) {
+                    if (type === 'campaigns') {
+                        // If a campaign is selected, only show that campaign in the 'campaigns' tab
+                        displayData = [selectedCampaign];
+                        title = `Campanha Selecionada: ${selectedCampaign.name}`;
+                    } else if (type === 'adsets') {
+                        // Filter adsets by the selected campaign's ID
+                        displayData = adsets.filter(adset => adset.campaign_id === selectedCampaign.id);
+                        title = `Conjuntos de Anúncios da Campanha: ${selectedCampaign.name}`;
+                    } else if (type === 'ads') {
+                        // First, get all adset IDs associated with the selected campaign
+                        const campaignAdsetIds = adsets
+                            .filter(adset => adset.campaign_id === selectedCampaign.id)
+                            .map(adset => adset.id);
+                        // Then, filter ads by these adset IDs
+                        displayData = ads.filter(ad => campaignAdsetIds.includes(ad.adset_id));
+                        title = `Criativos da Campanha: ${selectedCampaign.name}`;
+                    }
+                } else {
+                    // If no campaign is selected, show all data for the current tab
+                    if (type === 'campaigns') title = 'Todas as Campanhas';
+                    else if (type === 'adsets') title = 'Todos os Conjuntos de Anúncios';
+                    else if (type === 'ads') title = 'Todos os Criativos';
+                }
+
+                if (displayData.length === 0) {
+                    return <p className="text-center text-gray-400 py-8">Nenhum {type === 'campaigns' ? 'Campanha' : type === 'adsets' ? 'Conjunto de Anúncio' : 'Criativo'} encontrado(a) para o período e conta selecionados{selectedCampaign ? ` na campanha "${selectedCampaign.name}"` : ''}.</p>;
                 }
 
                 return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {data.map(item => (
-                            <div key={item.id} className="bg-gray-700 rounded-lg shadow-md p-5 border border-gray-600 transition-transform duration-300 hover:scale-105 hover:shadow-xl">
-                                <h3 className="text-xl font-semibold text-blue-300 mb-2 truncate-text">{item.name || item.id}</h3>
-                                {item.status && <div className="mb-3 flex flex-wrap gap-2">{renderStatus(item.status)} {item.effective_status && item.status !== item.effective_status && renderStatus(item.effective_status)}</div>}
-                                <p className="text-sm text-gray-300 mb-1"><strong>ID:</strong> <span className="text-gray-200">{item.id}</span></p>
-                                {item.start_time && <p className="text-sm text-gray-300 mb-1"><strong>Início:</strong> <span className="text-gray-200">{formatDate(item.start_time)}</span></p>}
-                                {item.stop_time && <p className="text-sm text-gray-300 mb-3"><strong>Fim:</strong> <span className="text-gray-200">{item.stop_time ? formatDate(item.stop_time) : 'Em aberto'}</span></p>}
-                                {item.objective && <p className="text-sm text-gray-300 mb-1"><strong>Objetivo:</strong> <span className="text-gray-200">{item.objective.replace(/_/g, ' ')}</span></p>}
-                                {item.preview_url && (
-                                    <div className="mb-3">
-                                        <p className="text-sm text-gray-300 mb-1"><strong>Prévia:</strong></p>
-                                        <img src={item.preview_url} alt="Creative Preview" className="w-full h-auto max-h-48 object-cover rounded-md mt-2" />
-                                        <a href={item.preview_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-sm hover:underline mt-1 block">Ver Imagem/Vídeo</a>
+                    <div className="bg-gray-700 rounded-lg shadow-md p-5 border border-gray-600">
+                        <h3 className="text-2xl font-bold text-blue-300 mb-4 text-center">{title}</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {displayData.map(item => (
+                                <div
+                                    key={item.id}
+                                    className={`bg-gray-800 rounded-lg shadow-md p-5 border border-gray-600 transition-transform duration-300 hover:scale-105 hover:shadow-xl ${type === 'campaigns' ? 'cursor-pointer' : ''}`}
+                                    onClick={type === 'campaigns' ? () => handleCampaignClick(item) : null}
+                                >
+                                    <h3 className="text-xl font-semibold text-blue-300 mb-2 truncate-text">{item.name || item.id}</h3>
+                                    {item.status && <div className="mb-3 flex flex-wrap gap-2">{renderStatus(item.status)} {item.effective_status && item.status !== item.effective_status && renderStatus(item.effective_status)}</div>}
+                                    <p className="text-sm text-gray-300 mb-1"><strong>ID:</strong> <span className="text-gray-200">{item.id}</span></p>
+                                    {item.start_time && <p className="text-sm text-gray-300 mb-1"><strong>Início:</strong> <span className="text-gray-200">{formatDate(item.start_time)}</span></p>}
+                                    {item.stop_time && <p className="text-sm text-gray-300 mb-3"><strong>Fim:</strong> <span className="text-gray-200">{item.stop_time ? formatDate(item.stop_time) : 'Em aberto'}</span></p>}
+                                    {item.objective && <p className="text-sm text-gray-300 mb-1"><strong>Objetivo:</strong> <span className="text-gray-200">{item.objective.replace(/_/g, ' ')}</span></p>}
+                                    {item.preview_url && (
+                                        <div className="mb-3">
+                                            <p className="text-sm text-gray-300 mb-1"><strong>Prévia:</strong></p>
+                                            <img src={item.preview_url} alt="Creative Preview" className="w-full h-auto max-h-48 object-cover rounded-md mt-2" />
+                                            <a href={item.preview_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-sm hover:underline mt-1 block">Ver Imagem/Vídeo</a>
+                                        </div>
+                                    )}
+
+
+                                    <div className="mt-4 pt-4 border-t border-gray-600">
+                                        <h4 className="font-bold text-lg text-green-400 mb-2">Métricas ({formatDate(startDate)} - {formatDate(endDate)})</h4>
+                                        <p className="text-gray-300 text-base mb-1"><strong>Gastos:</strong> <span className="text-red-300 font-semibold">{formatCurrency(item.insights.spend || 0)}</span></p>
+                                        <p className="text-gray-300 text-base mb-1"><strong>Cliques:</strong> <span className="text-blue-300 font-semibold">{item.insights.clicks || 0}</span></p>
+                                        <p className="text-gray-300 text-base mb-1"><strong>Impressões:</strong> <span className="text-purple-300 font-semibold">{item.insights.impressions || 0}</span></p>
+                                        <p className="text-gray-300 text-base mb-1"><strong>CTR:</strong> <span className="text-orange-300 font-semibold">{(parseFloat(item.insights.ctr || 0)).toFixed(2)}%</span></p>
+                                        <p className="text-gray-300 text-base mb-1"><strong>CPC:</strong> <span className="text-cyan-300 font-semibold">{formatCurrency(item.insights.cpc || 0)}</span></p>
+                                        <p className="text-gray-300 text-base mb-1"><strong>CPM:</strong> <span className="text-pink-300 font-semibold">{formatCurrency(item.insights.cpm || 0)}</span></p>
+                                        {renderActions(item.insights.actions)}
                                     </div>
-                                )}
-
-
-                                <div className="mt-4 pt-4 border-t border-gray-600">
-                                    <h4 className="font-bold text-lg text-green-400 mb-2">Métricas ({formatDate(startDate)} - {formatDate(endDate)})</h4>
-                                    <p className="text-gray-300 text-base mb-1"><strong>Gastos:</strong> <span className="text-red-300 font-semibold">{formatCurrency(item.insights.spend || 0)}</span></p>
-                                    <p className="text-gray-300 text-base mb-1"><strong>Cliques:</strong> <span className="text-blue-300 font-semibold">{item.insights.clicks || 0}</span></p>
-                                    <p className="text-gray-300 text-base mb-1"><strong>Impressões:</strong> <span className="text-purple-300 font-semibold">{item.insights.impressions || 0}</span></p>
-                                    <p className="text-gray-300 text-base mb-1"><strong>CTR:</strong> <span className="text-orange-300 font-semibold">{(parseFloat(item.insights.ctr || 0)).toFixed(2)}%</span></p>
-                                    <p className="text-gray-300 text-base mb-1"><strong>CPC:</strong> <span className="text-cyan-300 font-semibold">{formatCurrency(item.insights.cpc || 0)}</span></p>
-                                    <p className="text-gray-300 text-base mb-1"><strong>CPM:</strong> <span className="text-pink-300 font-semibold">{formatCurrency(item.insights.cpm || 0)}</span></p>
-                                    {renderActions(item.insights.actions)}
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 );
             };
@@ -1872,16 +1943,22 @@
                             <label htmlFor="accountSelect" className="text-gray-300 text-sm font-medium mb-1">Conta de Anúncio:</label>
                             <select
                                 id="accountSelect"
-                                value={accountId}
-                                onChange={(e) => setAccountId(e.target.value)}
+                                value={selectedAccountId}
+                                onChange={(e) => setSelectedAccountId(e.target.value)}
                                 className="bg-gray-600 border border-gray-500 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 cursor-pointer"
                             >
-                                {contas.map(conta => (
-                                    <option key={conta.id} value={conta.id}>
-                                        {conta.name} (ID: {conta.id})
+                                <option value="">Selecione uma Conta de Anúncios</option>
+                                {adAccounts.map(account => (
+                                    <option key={account.id} value={account.id}>
+                                        {account.name} (ID: {account.id})
                                     </option>
                                 ))}
                             </select>
+                            {adAccounts.length === 0 && (
+                                <p className="text-yellow-400 text-sm mt-1">
+                                    <i className="fas fa-exclamation-triangle mr-1"></i> Nenhuma conta de anúncio encontrada. Verifique suas permissões ou token.
+                                </p>
+                            )}
                         </div>
                         <div className="flex flex-col">
                             <label htmlFor="startDate" className="text-gray-300 text-sm font-medium mb-1">Data Início:</label>
@@ -1911,6 +1988,17 @@
                             Atualizar Dados
                         </button>
                     </div>
+
+                    {selectedCampaign && (
+                        <div className="mb-6 text-center">
+                            <button
+                                onClick={handleBackToAllCampaigns}
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-md shadow-md transition-all duration-300 transform hover:scale-105 flex items-center justify-center mx-auto"
+                            >
+                                <i className="fas fa-arrow-left mr-2"></i> Voltar para Todas as Campanhas
+                            </button>
+                        </div>
+                    )}
 
                     {/* Tabs for Campaigns, Ad Sets, Ads */}
                     <div className="flex justify-center mb-8 bg-gray-700 p-2 rounded-lg shadow-inner">
@@ -1950,604 +2038,11 @@
 
                     {!loading && !error && (
                         <div>
-                            {activeTab === 'campaigns' && renderDataCards(campaigns, 'Campanha')}
-                            {activeTab === 'adsets' && renderDataCards(adsets, 'Conjunto de Anúncios')}
-                            {activeTab === 'ads' && renderDataCards(ads, 'Criativo')}
+                            {activeTab === 'campaigns' && renderDataCards(campaigns, 'campaigns')}
+                            {activeTab === 'adsets' && renderDataCards(adsets, 'adsets')}
+                            {activeTab === 'ads' && renderDataCards(ads, 'ads')}
                         </div>
                     )}
-                </div>
-            );
-        }
-
-        // --- NOVO COMPONENTE: DeveloperPage (Página de Documentação da API) ---
-        function DeveloperPage() {
-            // Conteúdo HTML da documentação da API, recriado aqui.
-            const apiDocHtml = `
-                <div class="api-doc-container">
-                    <h1 class="text-center">Documentação da API HotLead Dashboard</h1>
-
-                    <p>Este documento detalha os endpoints da API para o HotLead Dashboard, permitindo que desenvolvedores conectem o frontend a um backend robusto. Ele assume que o desenvolvedor já tem acesso ao banco de dados e pode implementar a lógica de persistência e integração com APIs de terceiros (Meta Ads, Telegram, Pushin Pay) no lado do servidor.</p>
-
-                    <p class="note"><strong>Objetivo:</strong> Garantir que todas as funcionalidades do frontend possam ser totalmente operacionais e seguras através da integração com o backend.</p>
-
-                    <h2 id="conceitos-gerais">1. Conceitos Gerais</h2>
-                    <ul>
-                        <li><strong>Base URL da API:</strong> <code>https://api.seuhotlead.com.br</code> (Exemplo: substitua pela URL do seu backend)</li>
-                        <li><strong>Formato de Dados:</strong> Todas as requisições e respostas devem estar no formato JSON.
-                            <ul>
-                                <li><strong>Requisição:</strong> <code>Content-Type: application/json</code></li>
-                                <li><strong>Resposta:</strong> <code>Accept: application/json</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Autenticação:</strong> A maioria dos endpoints requer autenticação. Utilize um token JWT (JSON Web Token) enviado no cabeçalho <code>Authorization</code>.
-                            <ul>
-                                <li><code>Authorization: Bearer &lt;seu_token_jwt&gt;</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Tratamento de Erros:</strong>
-                            <ul>
-                                <li>Respostas de erro seguirão o padrão JSON, incluindo um campo <code>error</code> com uma mensagem descritiva e, opcionalmente, um <code>code</code> de erro.</li>
-                                <li>Exemplos de Códigos HTTP:
-                                    <ul>
-                                        <li><code>200 OK</code>: Sucesso.</li>
-                                        <li><code>201 Created</code>: Recurso criado com sucesso.</li>
-                                        <li><code>204 No Content</code>: Requisição processada com sucesso, sem conteúdo para retornar.</li>
-                                        <li><code>400 Bad Request</code>: Requisição inválida (ex: dados faltando, formato incorreto).</li>
-                                        <li><code>401 Unauthorized</code>: Autenticação necessária ou token inválido/expirado.</li>
-                                        <li><code>403 Forbidden</code>: Autenticado, mas sem permissão para acessar o recurso.</li>
-                                        <li><code>404 Not Found</code>: Recurso não encontrado.</li>
-                                        <li><code>500 Internal Server Error</code>: Erro interno do servidor.</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <h2 id="autenticacao">2. Autenticação</h2>
-                    <p>Gerenciamento de usuários e sessões.</p>
-
-                    <h3 id="criar-nova-conta-registro">2.1. Criar Nova Conta (Registro)</h3>
-                    <p>Cria um novo usuário na plataforma.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>POST /api/auth/signup</code></li>
-                        <li><strong>Corpo da Requisição (JSON):</strong>
-<pre><code>{
-    "name": "Nome Completo do Usuário",
-    "email": "email@exemplo.com",
-    "password": "senha_segura_aqui"
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Sucesso (201 Created):</strong>
-<pre><code>{
-    "message": "Usuário registrado com sucesso. Por favor, faça login."
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Erro (400 Bad Request, 500 Internal Server Error):</strong>
-<pre><code>{
-    "error": "Email já registrado."
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="fazer-login">2.2. Fazer Login</h3>
-                    <p>Autentica um usuário e retorna um token JWT.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>POST /api/auth/login</code></li>
-                        <li><strong>Corpo da Requisição (JSON):</strong>
-<pre><code>{
-    "email": "email@exemplo.com",
-    "password": "senha_segura_aqui"
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "message": "Login bem-sucedido!",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Token JWT para futuras requisições
-    "user": {
-        "id": "user_123",
-        "name": "Nome do Usuário",
-        "email": "email@exemplo.com"
-    }
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Erro (401 Unauthorized, 400 Bad Request):</strong>
-<pre><code>{
-    "error": "Credenciais inválidas."
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="fazer-logout-opcional-se-houver-gerenciamento-de-sessao-no-backend">2.3. Fazer Logout (Opcional, se houver gerenciamento de sessão no backend)</h3>
-                    <p>Invalida o token JWT ou a sessão do usuário.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>POST /api/auth/logout</code></li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "message": "Logout realizado com sucesso."
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h2 id="gestao-de-vendas">3. Gestão de Vendas</h2>
-                    <p>Endpoints para rastrear e analisar vendas.</p>
-
-                    <h3 id="obter-vendas">3.1. Obter Vendas</h3>
-                    <p>Retorna uma lista de todas as vendas, com opções de filtro.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/sales</code></li>
-                        <li><strong>Parâmetros de Query (Opcional):</strong>
-                            <ul>
-                                <li><code>startDate</code>: <code>YYYY-MM-DD</code> (Data de início para filtro de <code>data_geracao</code>)</li>
-                                <li><code>endDate</code>: <code>YYYY-MM-DD</code> (Data de fim para filtro de <code>data_geracao</code>)</li>
-                                <li><code>modelo</code>: <code>string</code> (ID do bot/modelo para filtrar vendas)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>[
-    {
-        "modelo": "Joyca",
-        "campanha": "lead_quente_01",
-        "codigo_pix": "2000796",
-        "valor": 1000.00,
-        "data_geracao": "2025-07-27T12:38:41Z",
-        "data_pagamento": "2025-07-27T12:40:00Z",
-        "status": "PAGO",
-        "meta_status": "PAID"
-    },
-    // ... mais objetos de venda
-]
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="obter-resumo-de-vendas">3.2. Obter Resumo de Vendas</h3>
-                    <p>Retorna um resumo agregado das vendas (PIX gerados, pagos, valor total pago).</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/sales/summary</code></li>
-                        <li><strong>Parâmetros de Query (Opcional):</strong>
-                            <ul>
-                                <li><code>startDate</code>: <code>YYYY-MM-DD</code></li>
-                                <li><code>endDate</code>: <code>YYYY-MM-DD</code></li>
-                                <li><code>modelo</code>: <code>string</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "totalPixGenerated": 50,
-    "totalPixPaid": 30,
-    "totalAmountPaid": 45000.00,
-    "dailyMetrics": [
-        { "date": "2025-07-20", "sales": 1500.00, "spending": 300.00 },
-        { "date": "2025-07-21", "sales": 2200.00, "spending": 450.00 }
-        // ... dados diários para o gráfico
-    ]
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h2 id="gestao-de-bots">4. Gestão de Bots</h2>
-                    <p>Endpoints para gerenciar bots de Telegram.</p>
-
-                    <h3 id="listar-bots">4.1. Listar Bots</h3>
-                    <p>Retorna todos os bots configurados pelo usuário.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/bots</code></li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>[
-    {
-        "id": "Joyca",
-        "name": "Joyca",
-        "status": "ativo",
-        "token": "7100827255:AAH4i1m56X-A-u06z1-yJ1w-oD123456789",
-        "linkedCampaigns": ["adset_1"],
-        "adAccountId": "507111372463621"
-    },
-    // ... mais objetos de bot
-]
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="adicionar-novo-bot">4.2. Adicionar Novo Bot</h3>
-                    <p>Adiciona um novo bot usando seu token do Telegram. O backend deve validar o token e obter o nome/status do bot.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>POST /api/bots</code></li>
-                        <li><strong>Corpo da Requisição (JSON):</strong>
-<pre><code>{
-    "token": "seu_token_do_telegram_aqui"
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Sucesso (201 Created):</strong>
-<pre><code>{
-    "message": "Bot adicionado com sucesso!",
-    "bot": {
-        "id": "NomeDoBot", // ou um ID gerado pelo backend
-        "name": "NomeDoBot",
-        "status": "ativo",
-        "token": "seu_token_do_telegram_aqui",
-        "linkedCampaigns": [],
-        "adAccountId": null
-    }
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Erro (400 Bad Request, 500 Internal Server Error):</strong>
-<pre><code>{
-    "error": "Token inválido ou erro ao conectar com a API do Telegram."
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="atualizar-configuracao-do-bot">4.3. Atualizar Configuração do Bot</h3>
-                    <p>Atualiza as propriedades de um bot existente, incluindo campanhas vinculadas e conta de anúncios.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>PUT /api/bots/{botId}/config</code></li>
-                        <li><strong>Parâmetros de URL:</strong>
-                            <ul>
-                                <li><code>botId</code>: <code>string</code> (ID do bot a ser atualizado)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Corpo da Requisição (JSON):</strong>
-<pre><code>{
-    "name": "Novo Nome do Bot (opcional)",
-    "status": "ativo" | "inativo", // Status do bot
-    "token": "novo_token_se_houver_mudanca", // Opcional, se o token mudar
-    "linkedCampaigns": ["adset_id_1", "adset_id_2"], // IDs dos adsets vinculados
-    "adAccountId": "id_da_conta_de_anuncios" // ID da conta de anúncios vinculada
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "message": "Configurações do bot atualizadas com sucesso.",
-    "bot": {
-        "id": "Joyca",
-        "name": "Joyca Atualizada",
-        "status": "ativo",
-        "token": "7100827255:AAH4i1m56X-A-u06z1-yJ1w-oD123456789",
-        "linkedCampaigns": ["adset_1", "adset_3"],
-        "adAccountId": "507111372463621"
-    }
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="consultar-status-do-bot">4.4. Consultar Status do Bot</h3>
-                    <p>Solicita ao backend que verifique o status de um bot via API do Telegram.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/bots/{botId}/status</code></li>
-                        <li><strong>Parâmetros de URL:</strong>
-                            <ul>
-                                <li><code>botId</code>: <code>string</code> (ID do bot a ser consultado)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "status": "ativo",
-    "name": "Nome Real do Bot no Telegram",
-    "message": "Bot está online e respondendo."
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Erro (400 Bad Request, 500 Internal Server Error):</strong>
-<pre><code>{
-    "status": "inativo",
-    "name": "Desconhecido",
-    "error": "Erro ao consultar bot: Token inválido ou problema de conexão."
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h2 id="integracoes">5. Integrações</h2>
-                    <p>Endpoints para configurar integrações com plataformas externas.</p>
-
-                    <h3 id="salvar-configuracao-do-pixel-meta">5.1. Salvar Configuração do Pixel Meta</h3>
-                    <p>Salva o ID do Pixel Meta para rastreamento.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>POST /api/integrations/meta-pixel</code></li>
-                        <li><strong>Corpo da Requisição (JSON):</strong>
-<pre><code>{
-    "pixelId": "123456789012345"
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "message": "Pixel ID salvo com sucesso."
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="conectar-conta-de-anuncios-meta-ads-oauth-flow">5.2. Conectar Conta de Anúncios Meta Ads (OAuth Flow)</h3>
-                    <p class="warning"><strong>IMPORTANTE:</strong> A conexão com a API de Anúncios da Meta (Facebook/Instagram Ads) <strong>DEVE</strong> ser feita via um fluxo OAuth 2.0 no backend. O frontend apenas iniciará o processo.</p>
-                    <ul>
-                        <li><strong>Endpoint para iniciar o OAuth (Frontend para Backend):</strong> <code>GET /api/integrations/meta-ads/connect</code>
-                            <ul>
-                                <li>O backend deve redirecionar o usuário para a URL de autenticação da Meta, incluindo <code>client_id</code>, <code>redirect_uri</code>, <code>scope</code> (permissões necessárias como <code>ads_read</code>, <code>ads_management</code>), e <code>state</code>.</li>
-                                <li>Após a autorização do usuário na Meta, a Meta redirecionará de volta para a <code>redirect_uri</code> do seu backend com um <code>code</code>.</li>
-                                <li>Seu backend então trocará este <code>code</code> por um <code>access_token</code> de longo prazo com a Meta.</li>
-                                <li>O backend deve armazenar este <code>access_token</code> de forma segura e associá-lo ao usuário.</li>
-                            </ul>
-                        </li>
-                        <li><strong>Endpoint para receber o Access Token (Backend para Frontend, após OAuth completo):</strong>
-                            <ul>
-                                <li>Após o backend obter e armazenar o token, ele pode redirecionar o frontend de volta para uma página de sucesso, talvez com um parâmetro de query indicando o sucesso da conexão.</li>
-                                <li><strong>Não envie o <code>access_token</code> diretamente para o frontend.</strong> O frontend apenas precisa saber que a conexão foi bem-sucedida.</li>
-                            </ul>
-                        </li>
-                        <li><strong>Resposta de Sucesso (Exemplo de backend redirecionando para frontend):</strong>
-                            <ul>
-                                <li>Redirecionamento para <code>https://app.seuhotlead.com.br/integrations?meta_ads_connected=true</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Resposta de Erro (Exemplo de backend redirecionando para frontend):</strong>
-                            <ul>
-                                <li>Redirecionamento para <code>https://app.seuhotlead.com.br/integrations?meta_ads_connected=false&amp;error=user_denied</code></li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <h3 id="salvar-token-da-pushin-pay">5.3. Salvar Token da Pushin Pay</h3>
-                    <p>Salva o token de API da Pushin Pay para processamento de pagamentos.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>POST /api/integrations/pushin-pay</code></li>
-                        <li><strong>Corpo da Requisição (JSON):</strong>
-<pre><code>{
-    "token": "seu_token_secreto_pushin_pay_aqui"
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "message": "Token da Pushin Pay salvo com sucesso."
-}
-</code></pre>
-                        </li>
-                        <li><p class="note"><strong>Observação de Segurança:</strong> O backend deve usar este token para interagir com a API da Pushin Pay de forma segura, sem expô-lo ao frontend.</p></li>
-                    </ul>
-
-                    <h2 id="gestao-de-campanhas-meta-ads">6. Gestão de Campanhas Meta Ads</h2>
-                    <p>Endpoints para obter dados de campanhas, conjuntos de anúncios e criativos da Meta Ads.
-                    <p class="warning"><strong>Todas as chamadas à API da Meta (Facebook/Instagram Ads) devem ser feitas pelo backend para proteger seu <code>access_token</code> e evitar problemas de CORS/limites de taxa.</strong></p>
-
-                    <h3 id="obter-contas-de-anuncios">6.1. Obter Contas de Anúncios</h3>
-                    <p>Lista as contas de anúncios acessíveis pelo token Meta Ads conectado.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/meta-ads/accounts</code></li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>[
-    { "id": "507111372463621", "name": "Conta de Anúncios 1 (Principal)" },
-    { "id": "1421566932486575", "name": "Conta de Anúncios 2 (Backup)" }
-    // ... mais contas
-]
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="obter-campanhas">6.2. Obter Campanhas</h3>
-                    <p>Retorna uma lista de campanhas de uma conta de anúncios específica, com insights.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/meta-ads/campaigns</code></li>
-                        <li><strong>Parâmetros de Query:</strong>
-                            <ul>
-                                <li><code>accountId</code>: <code>string</code> (ID da conta de anúncios)</li>
-                                <li><code>startDate</code>: <code>YYYY-MM-DD</code></li>
-                                <li><code>endDate</code>: <code>YYYY-MM-DD</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>[
-    {
-        "id": "campaign_id_1",
-        "name": "Campanha de Verão 2025",
-        "status": "ACTIVE",
-        "effective_status": "ACTIVE",
-        "start_time": "2025-07-01T00:00:00Z",
-        "stop_time": null,
-        "insights": {
-            "spend": "1250.75",
-            "impressions": "150000",
-            "clicks": "3500",
-            "actions": [ { "action_type": "lead", "value": "150" } ],
-            "ctr": "2.33",
-            "cpc": "0.35",
-            "cpm": "8.33"
-        }
-    },
-    // ... mais campanhas
-]
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="obter-conjuntos-de-anuncios-ad-sets">6.3. Obter Conjuntos de Anúncios (Ad Sets)</h3>
-                    <p>Retorna uma lista de conjuntos de anúncios de uma conta ou campanha específica, com insights.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/meta-ads/adsets</code></li>
-                        <li><strong>Parâmetros de Query:</strong>
-                            <ul>
-                                <li><code>accountId</code>: <code>string</code> (ID da conta de anúncios)</li>
-                                <li><code>campaignId</code>: <code>string</code> (Opcional: filtra por campanha específica)</li>
-                                <li><code>startDate</code>: <code>YYYY-MM-DD</code></li>
-                                <li><code>endDate</code>: <code>YYYY-MM-DD</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>[
-    {
-        "id": "adset_id_1",
-        "name": "AdSet Público Quente",
-        "status": "ACTIVE",
-        "campaign_id": "campaign_id_1",
-        "objective": "LEAD_GENERATION",
-        "insights": { /* mesmas métricas que campanhas */ }
-    },
-    // ... mais ad sets
-]
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="obter-criativos-ads">6.4. Obter Criativos (Ads)</h3>
-                    <p>Retorna uma lista de criativos (anúncios) de uma conta ou conjunto de anúncios específico, com insights.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/meta-ads/ads</code></li>
-                        <li><strong>Parâmetros de Query:</strong>
-                            <ul>
-                                <li><code>accountId</code>: <code>string</code> (ID da conta de anúncios)</li>
-                                <li><code>adsetId</code>: <code>string</code> (Opcional: filtra por ad set específico)</li>
-                                <li><code>startDate</code>: <code>YYYY-MM-DD</code></li>
-                                <li><code>endDate</code>: <code>YYYY-MM-DD</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>[
-    {
-        "id": "ad_id_1",
-        "name": "Criativo Imagem Produto A",
-        "status": "ACTIVE",
-        "adset_id": "adset_id_1",
-        "preview_url": "https://url.da.imagem/ad1.jpg",
-        "insights": { /* mesmas métricas que campanhas */ }
-    },
-    // ... mais criativos
-]
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="obter-insights-agregados">6.5. Obter Insights Agregados</h3>
-                    <p>Endpoint genérico para obter insights de uma conta, campanha, conjunto de anúncios ou criativo.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/meta-ads/insights/summary</code></li>
-                        <li><strong>Parâmetros de Query:</strong>
-                            <ul>
-                                <li><code>accountId</code>: <code>string</code> (Obrigatório)</li>
-                                <li><code>level</code>: <code>account</code> | <code>campaign</code> | <code>adset</code> | <code>ad</code> (Nível de agregação)</li>
-                                <li><code>id</code>: <code>string</code> (Opcional: ID da campanha/adset/ad, se <code>level</code> não for <code>account</code>)</li>
-                                <li><code>startDate</code>: <code>YYYY-MM-DD</code></li>
-                                <li><code>endDate</code>: <code>YYYY-MM-DD</code></li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "data": [
-        {
-            "spend": "1500.00",
-            "impressions": "200000",
-            "clicks": "5000",
-            "actions": [ { "action_type": "purchase", "value": "50" } ]
-        }
-    ]
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h2 id="criacao-de-checkout">7. Criação de Checkout</h2>
-                    <p>Endpoints para gerenciar páginas de checkout.</p>
-
-                    <h3 id="criar-novo-checkout">7.1. Criar Novo Checkout</h3>
-                    <p>Cria uma nova página de checkout.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>POST /api/checkouts</code></li>
-                        <li><strong>Corpo da Requisição (JSON):</strong>
-<pre><code>{
-    "name": "Checkout Produto X",
-    "product_id": "prod_abc",
-    "price": 99.90,
-    "currency": "BRL",
-    "description": "Descrição breve do produto.",
-    "redirect_url_success": "https://seusite.com/obrigado",
-    "redirect_url_fail": "https://seusite.com/erro"
-    // ... outros campos relevantes para o checkout
-}
-</code></pre>
-                        </li>
-                        <li><strong>Resposta de Sucesso (201 Created):</strong>
-<pre><code>{
-    "message": "Checkout criado com sucesso!",
-    "checkout": {
-        "id": "chk_123",
-        "name": "Checkout Produto X",
-        "public_url": "https://checkout.seuhotlead.com.br/chk_123"
-    }
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h3 id="obter-detalhes-do-checkout">7.2. Obter Detalhes do Checkout</h3>
-                    <p>Retorna os detalhes de um checkout específico.</p>
-                    <ul>
-                        <li><strong>Endpoint:</strong> <code>GET /api/checkouts/{checkoutId}</code></li>
-                        <li><strong>Parâmetros de URL:</strong>
-                            <ul>
-                                <li><code>checkoutId</code>: <code>string</code> (ID do checkout)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Cabeçalhos:</strong> <code>Authorization: Bearer &lt;token_jwt&gt;</code></li>
-                        <li><strong>Resposta de Sucesso (200 OK):</strong>
-<pre><code>{
-    "id": "chk_123",
-    "name": "Checkout Produto X",
-    "product_id": "prod_abc",
-    "price": 99.90,
-    "currency": "BRL",
-    "description": "Descrição breve do produto.",
-    "public_url": "https://checkout.seuhotlead.com.br/chk_123",
-    "created_at": "2025-07-18T10:00:00Z"
-}
-</code></pre>
-                        </li>
-                    </ul>
-
-                    <h2 id="consideracoes-finais-para-o-desenvolvedor">8. Considerações Finais para o Desenvolvedor</h2>
-                    <ul>
-                        <li><strong>Segurança em Primeiro Lugar:</strong>
-                            <ul>
-                                <li><p class="warning"><strong>Nunca exponha tokens de API (Meta, Telegram, Pushin Pay) diretamente no frontend.</strong> Todas as interações com essas APIs devem ser intermediadas pelo seu backend.</p></li>
-                                <li>Implemente validação de entrada robusta em todos os endpoints do backend.</li>
-                                <li>Utilize HTTPS para todas as comunicações.</li>
-                                <li>Gerencie tokens JWT de forma segura (armazenamento, expiração, renovação).</li>
-                            </ul>
-                        </li>
-                        <li><strong>Escalabilidade:</strong> Projete seu backend para ser escalável, especialmente ao lidar com grandes volumes de dados de vendas e campanhas.</li>
-                        <li><strong>Monitoramento e Logs:</strong> Implemente monitoramento e logs detalhados no backend para depuração e auditoria.</li>
-                        <li><strong>Testes:</strong> Realize testes unitários, de integração e de ponta a ponta para garantir a estabilidade e correção da API.</li>
-                        <li><strong>Documentação Interna:</strong> Mantenha uma documentação interna do backend sempre atualizada, detalhando a lógica de negócios e as integrações com APIs de terceiros.</li>
-                    </ul>
-
-                    <p>Com esta documentação, você terá uma base sólida para construir um backend que suporte todas as funcionalidades do HotLead Dashboard, garantindo segurança e eficiência.</p>
-                </div>
-            `;
-            return (
-                <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
-                    <h2 className="text-3xl font-extrabold text-green-400 mb-6 text-center">Documentação da API</h2>
-                    <div dangerouslySetInnerHTML={{ __html: apiDocHtml }} />
                 </div>
             );
         }
@@ -2580,8 +2075,10 @@
                 // Carrega a preferência de tema do localStorage
                 const savedTheme = localStorage.getItem('theme');
                 if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
                     setIsDarkMode(true);
                 } else {
+                    document.documentElement.classList.remove('dark');
                     setIsDarkMode(false);
                 }
             }, []);
@@ -2614,7 +2111,7 @@
             };
 
             const navigateTo = (page) => {
-                if (isLoggedIn || page === 'login' || page === 'signup' || page === 'landing' || page === 'developer') { // Adicionado 'developer'
+                if (isLoggedIn || page === 'login' || page === 'signup' || page === 'landing') {
                     setCurrentPage(page);
                 } else {
                     // Se tentar navegar para uma página interna sem login, redireciona para login
@@ -2654,13 +2151,12 @@
                             </>
                         ) : (
                             <>
-                                {currentPage === 'dashboard' && <Dashboard />}
-                                {currentPage === 'sales' && <SalesPage />}
+                                {currentPage === 'dashboard' && <Dashboard showMessage={showMessage} />}
+                                {currentPage === 'sales' && <SalesPage showMessage={showMessage} />}
                                 {currentPage === 'bots' && <BotsPage showMessage={showMessage} />}
                                 {currentPage === 'integrations' && <IntegrationsPage showMessage={showMessage} />}
                                 {currentPage === 'create-checkout' && <CreateCheckout />}
                                 {currentPage === 'campaigns' && <CampaignsPage showMessage={showMessage} />}
-                                {currentPage === 'developer' && <DeveloperPage />} {/* Nova página do desenvolvedor */}
                                 {/* Botão de Logout para quando estiver logado */}
                                 <div className="fixed bottom-4 right-4">
                                     <button
