@@ -81,7 +81,7 @@
         const formatCurrency = (value) => {
             const num = Number(value);
             if (isNaN(num)) return "R$ 0,00";
-            // Assume the value is in cents and converts to reais
+            // Assume the value is in cents and converts to reais for display
             return (num / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
         };
 
@@ -258,7 +258,7 @@
                             <div className="bg-gray-700 p-8 rounded-lg shadow-xl text-center border border-gray-600 hover:border-green-500 transition-all duration-300 transform hover:scale-105">
                                 <i className="fas fa-shopping-cart text-5xl text-pink-400 mb-4"></i>
                                 <h3 className="text-2xl font-semibold text-white mb-3">Criação de Checkouts Otimizados</h3>
-                                <p className="text-gray-300">Desenvolva páginas de checkout de alta conversão para seus produtos e serviços.</p>
+                                <p className className="text-gray-300">Desenvolva páginas de checkout de alta conversão para seus produtos e serviços.</p>
                             </div>
                             <div className="bg-gray-700 p-8 rounded-lg shadow-xl text-center border border-gray-600 hover:border-green-500 transition-all duration-300 transform hover:scale-105">
                                 <i className="fas fa-chart-pie text-5xl text-yellow-400 mb-4"></i>
@@ -491,19 +491,23 @@
             );
         }
 
-        // --- DASHBOARD Componente (1 - Atualizado para buscar vendas reais) ---
+        // --- DASHBOARD Componente (1 - Atualizado para buscar vendas reais e gastos diários reais) ---
         function Dashboard({ showMessage }) {
+            // Declarações de estado e ref movidas para o topo para clareza
+            const [chartData, setChartData] = useState({ labels: [], datasets: [] });
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
             const [allSalesData, setAllSalesData] = useState([]); // Armazena todos os dados de vendas da API
             const [filteredSalesData, setFilteredSalesData] = useState([]); // Dados de vendas filtrados para exibição
-            const [campaignsData, setCampaignsData] = useState([]);
-            const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+            const [campaignsDailySpendData, setCampaignsDailySpendData] = useState([]); // Dados de gastos diários das campanhas (agregados por todas as contas)
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
-            const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
-            const defaultAccountId = "507111372463621"; // Mantido hardcoded para demonstração da API Meta Ads
+            console.log("Dashboard component rendered. chartData:", chartData); // Log para depuração
+
+            // ATENÇÃO: SUBSTITUA ESTE TOKEN PELO SEU TOKEN DE ACESSO VÁLIDO DA META ADS API.
+            // MANTER TOKENS DIRETAMENTE NO CÓDIGO DO CLIENTE NÃO É SEGURO PARA PRODUÇÃO.
+            const TOKEN = "EAAIyWkoZCTyQBPCoNeC8WZCqICBf3L4uFY60QXTZAzYvuP9MrSR4RYuA1II4TwtrxFmtOrdLdKbdsZAloc1qUfuzz0kKgsxZCW2acLTr2oEcrrufvwMbMSAmjS7I2YBtgcHWbiXIyZBSXjS0jt7vNxhUsZAmidBTM2w2ZANOGk6kIy9VueXNUwPmJSPWMFMWcbNVAbMrsso4yNZB1iNJqzDjX"; // Seu token de acesso da Meta Ads API aqui
             const API_BASE_URL = 'https://hotlead-api-production.up.railway.app/api';
             const API_KEY = '715fdc00-ff3c-4180-bf4c-287783841da7';
 
@@ -541,24 +545,72 @@
                 }
             }, [showMessage]);
 
-            // Função para buscar métricas de campanhas (gastos)
-            const fetchCampaignMetrics = useCallback(async (start, end) => {
+            // Função para buscar e agregar métricas de gastos diários de TODAS as contas de anúncio
+            const fetchAndAggregateMetaSpendData = useCallback(async (start, end) => {
+                if (!TOKEN) {
+                    showMessage("Token de acesso da Meta Ads API não fornecido. Por favor, insira um token válido na constante TOKEN.", 'warning');
+                    setCampaignsDailySpendData([]);
+                    return;
+                }
                 try {
-                    const urlInsights = new URL(`https://graph.facebook.com/v19.0/act_${defaultAccountId}/insights`);
-                    urlInsights.searchParams.set("level", "account");
-                    urlInsights.searchParams.set("fields", "spend");
-                    urlInsights.searchParams.set("time_range", JSON.stringify({ since: start, until: end }));
-                    urlInsights.searchParams.set("access_token", TOKEN);
+                    // 1. Buscar todas as contas de anúncio do usuário
+                    const adAccountsUrl = new URL(`https://graph.facebook.com/v19.0/me/adaccounts`);
+                    adAccountsUrl.searchParams.set("fields", "id"); // Apenas o ID é necessário
+                    adAccountsUrl.searchParams.set("access_token", TOKEN);
+                    const adAccountsRes = await fetch(adAccountsUrl);
+                    const adAccountsData = await adAccountsRes.json();
 
-                    const res = await fetch(urlInsights);
-                    const data = await res.json();
-                    console.log("Dados brutos da API de Campanhas (Dashboard):", data); // Log para depuração
-                    if (data.error) throw new Error(`Erro ao buscar gastos: ${data.error.message}`);
-                    setCampaignsData(data.data || []);
+                    if (adAccountsData.error) {
+                        throw new Error(`Erro ao buscar contas de anúncio: ${adAccountsData.error.message}`);
+                    }
+                    const accountIds = (adAccountsData.data || []).map(acc => acc.id);
+
+                    if (accountIds.length === 0) {
+                        showMessage("Nenhuma conta de anúncio encontrada para o token fornecido. Não é possível buscar gastos.", 'warning');
+                        setCampaignsDailySpendData([]);
+                        return;
+                    }
+
+                    const allDailySpends = new Map(); // Map<date_start, total_spend_for_that_day>
+
+                    // 2. Para cada conta, buscar os insights diários e agregá-los
+                    for (const account of accountIds) {
+                        const insightsUrl = new URL(`https://graph.facebook.com/v19.0/${account}/insights`);
+                        insightsUrl.searchParams.set("level", "account"); // Nível da conta para gastos totais diários
+                        insightsUrl.searchParams.set("fields", "spend");
+                        insightsUrl.searchParams.set("time_range", JSON.stringify({ since: start, until: end }));
+                        insightsUrl.searchParams.set("time_increment", "1"); // Solicita dados diários
+                        insightsUrl.searchParams.set("access_token", TOKEN);
+
+                        const res = await fetch(insightsUrl);
+                        const data = await res.json();
+
+                        if (data.error) {
+                            console.warn(`Erro ao buscar insights para conta ${account}: ${data.error.message}`);
+                            // Continua para a próxima conta se uma falhar
+                            continue;
+                        }
+
+                        (data.data || []).forEach(insight => {
+                            const dateKey = insight.date_start;
+                            const currentSpend = allDailySpends.get(dateKey) || 0;
+                            allDailySpends.set(dateKey, currentSpend + parseFloat(insight.spend || 0));
+                        });
+                    }
+
+                    // Converter o mapa de volta para o formato de array esperado
+                    const aggregatedDailySpends = Array.from(allDailySpends.entries()).map(([date_start, spend]) => ({
+                        date_start,
+                        spend: spend.toFixed(2) // Mantém como string com 2 casas decimais
+                    })).sort((a,b) => new Date(a.date_start) - new Date(b.date_start)); // Ordena por data
+
+                    console.log("Dados de gastos diários agregados (Dashboard):", aggregatedDailySpends); // Log para depuração
+                    setCampaignsDailySpendData(aggregatedDailySpends);
+
                 } catch (e) {
-                    console.error("Erro ao buscar gastos para o dashboard:", e);
-                    showMessage(`Erro ao carregar gastos de campanhas: ${e.message}`, 'error');
-                    setCampaignsData([]);
+                    console.error("Erro ao buscar e agregar gastos diários para o dashboard:", e);
+                    showMessage(`Erro ao carregar gastos de campanhas: ${e.message}. Verifique seu token de acesso da Meta Ads API.`, 'error');
+                    setCampaignsDailySpendData([]);
                 }
             }, [TOKEN, showMessage]);
 
@@ -575,8 +627,8 @@
                 setEndDate(defaultEndDate);
                 
                 fetchAllSales(); // Busca todas as vendas
-                fetchCampaignMetrics(defaultStartDate, defaultEndDate); // Busca gastos com filtro de data
-            }, [fetchAllSales, fetchCampaignMetrics]);
+                fetchAndAggregateMetaSpendData(defaultStartDate, defaultEndDate); // Busca e agrega gastos com filtro de data
+            }, [fetchAllSales, fetchAndAggregateMetaSpendData]);
 
             // Efeito para filtrar os dados de vendas sempre que allSalesData ou as datas mudarem
             useEffect(() => {
@@ -596,7 +648,7 @@
 
             // Lógica para preparar dados para o gráfico
             useEffect(() => {
-                if (filteredSalesData.length === 0 && campaignsData.length === 0) {
+                if (filteredSalesData.length === 0 && campaignsDailySpendData.length === 0) {
                     setChartData({ labels: [], datasets: [] });
                     return;
                 }
@@ -611,49 +663,30 @@
                     datesMap.set(dateKey, { sales: 0, spending: 0 });
                 }
 
-                // Agrega dados de vendas filtrados
+                // Agrega dados de vendas filtrados (valores em centavos)
                 filteredSalesData.forEach(sale => {
                     const saleDateKey = new Date(sale.generate_date).toISOString().slice(0, 10); // Usando sale.generate_date
                     if (datesMap.has(saleDateKey)) {
-                        datesMap.get(saleDateKey).sales += sale.value / 100; // Divide por 100 para converter centavos em reais
+                        datesMap.get(saleDateKey).sales += sale.value; // Adiciona o valor em centavos
                     }
                 });
 
-                // Calcula gastos diários com base no total de gastos das campanhas
-                const totalSpendingForPeriod = campaignsData.reduce((sum, insight) => sum + parseFloat(insight.spend || 0), 0);
-                const daysInPeriod = Array.from(datesMap.keys()).length;
-                let simulatedDailySpendingBase = daysInPeriod > 0 ? totalSpendingForPeriod / daysInPeriod : 0;
-
-                // Distribui os gastos simulados com alguma variação
-                let currentSimulatedSpending = simulatedDailySpendingBase * 0.8;
-                const spendingValues = Array.from(datesMap.keys()).map((dateKey, index) => {
-                    const variance = (Math.random() - 0.5) * simulatedDailySpendingBase * 0.5;
-                    currentSimulatedSpending += variance;
-                    currentSimulatedSpending = Math.max(0, currentSimulatedSpending);
-                    return currentSimulatedSpending;
-                });
-
-                // Ajusta o último valor para que a soma total dos gastos simulados seja igual ao totalSpendingForPeriod
-                const currentTotalSimulatedSpending = spendingValues.reduce((sum, val) => sum + val, 0);
-                if (daysInPeriod > 0 && currentTotalSimulatedSpending > 0) { // Evita divisão por zero
-                    const adjustmentFactor = totalSpendingForPeriod / currentTotalSimulatedSpending;
-                    for (let i = 0; i < spendingValues.length; i++) {
-                        spendingValues[i] *= adjustmentFactor;
+                // Agrega dados de gastos diários reais (valores em moeda)
+                campaignsDailySpendData.forEach(insight => {
+                    const dateKey = insight.date_start; // date_start é 'YYYY-MM-DD'
+                    if (datesMap.has(dateKey)) {
+                        datesMap.get(dateKey).spending += parseFloat(insight.spend || 0) * 100; // Converte para centavos para consistência
                     }
-                }
+                });
                 
-                Array.from(datesMap.keys()).forEach((dateKey, index) => {
-                    datesMap.get(dateKey).spending = spendingValues[index];
-                });
-
                 const labels = Array.from(datesMap.keys()).map(dateKey => {
                     const [year, month, day] = dateKey.split('-');
                     return `${day}/${month}`;
                 });
 
                 const salesValues = Array.from(datesMap.values()).map(data => data.sales);
-                const spendingGraphValues = Array.from(datesMap.values()).map(data => data.spending);
-                const averageValues = Array.from(datesMap.values()).map(data => (data.sales + data.spending) / 2);
+                const spendingValues = Array.from(datesMap.values()).map(data => data.spending);
+                const profitValues = Array.from(datesMap.values()).map(data => data.sales - data.spending);
 
                 setChartData({
                     labels: labels,
@@ -667,16 +700,16 @@
                             fill: false,
                         },
                         {
-                            label: 'Saídas (Gastos Simulados)',
-                            data: spendingGraphValues,
+                            label: 'Saídas (Gastos)',
+                            data: spendingValues,
                             borderColor: 'rgb(255, 99, 132)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
                             tension: 0.3,
                             fill: false,
                         },
                         {
-                            label: 'Média (Entradas + Saídas / 2)',
-                            data: averageValues,
+                            label: 'Lucro Diário',
+                            data: profitValues,
                             borderColor: 'rgb(153, 102, 255)',
                             backgroundColor: 'rgba(153, 102, 255, 0.2)',
                             tension: 0.3,
@@ -685,10 +718,11 @@
                         },
                     ],
                 });
-            }, [filteredSalesData, campaignsData, startDate, endDate]);
+            }, [filteredSalesData, campaignsDailySpendData, startDate, endDate]);
 
             // Efeito para renderizar/atualizar o gráfico Chart.js
             useEffect(() => {
+                console.log("Attempting to render chart. chartData:", chartData); // Log para depuração
                 if (chartRef.current && chartData.labels.length > 0) {
                     if (chartInstance.current) {
                         chartInstance.current.destroy(); // Destrói a instância anterior se existir
@@ -708,7 +742,7 @@
                                 },
                                 title: {
                                     display: true,
-                                    text: 'Desempenho Diário (Entradas, Saídas, Média)',
+                                    text: 'Desempenho Diário (Entradas, Saídas, Lucro)',
                                     color: '#e0e0e0',
                                 }
                             },
@@ -725,7 +759,8 @@
                                     ticks: {
                                         color: '#e0e0e0',
                                         callback: function(value) {
-                                            return formatCurrency(value);
+                                            // A função formatCurrency já converte de centavos para Reais para exibição
+                                            return formatCurrency(value); 
                                         }
                                     },
                                     grid: {
@@ -751,17 +786,18 @@
             }, [chartData]);
 
 
-            // Calcula o total de vendas PAGO para o dashboard
-            const totalSalesPaid = filteredSalesData.filter(s => s.status === 'PAGO').reduce((sum, sale) => sum + sale.value / 100, 0);
-            const totalSpending = campaignsData.reduce((sum, insight) => sum + parseFloat(insight.spend || 0), 0);
-            const totalProfit = totalSalesPaid - totalSpending; // Lucro baseado apenas em vendas pagas
+            // Calcula o total de vendas PAGO para o dashboard (em centavos)
+            const totalSalesPaid = filteredSalesData.filter(s => s.status === 'PAGO').reduce((sum, sale) => sum + sale.value, 0);
+            // Calcula o total de gastos (em centavos) a partir dos dados diários agregados de todas as contas
+            const totalSpending = campaignsDailySpendData.reduce((sum, insight) => sum + parseFloat(insight.spend || 0) * 100, 0);
+            const totalProfit = totalSalesPaid - totalSpending; // Lucro baseado apenas em vendas pagas (em centavos)
 
             // Group sales and spending by bot for per-bot metrics
             // Nota: Os dados de bots e adsets ainda seriam carregados de APIs reais em um ambiente de produção.
             // Para esta demonstração, os bots são inicializados como vazios e adicionados via UI.
             const botsMetrics = BOTS_DATA_INITIAL_STATE.map(bot => { // Usando o estado inicial de bots (vazio)
                 const botSales = filteredSalesData.filter(sale => sale.model === bot.id); // Usando sale.model
-                const botRevenue = botSales.reduce((sum, sale) => sum + sale.value / 100, 0); // Usando sale.value e dividindo por 100
+                const botRevenue = botSales.reduce((sum, sale) => sum + sale.value, 0); // (em centavos)
                 
                 // Calcula gastos com base nas campanhas vinculadas
                 // Como MOCK_ADSETS_DATA foi removido, esta parte precisaria de dados reais de adsets.
@@ -777,7 +813,7 @@
             const handleApplyFilters = () => {
                 // Ao clicar em "Atualizar", apenas re-filtra os dados de vendas já carregados
                 // e busca novamente os dados de campanha da Meta Ads com o novo período.
-                fetchCampaignMetrics(startDate, endDate);
+                fetchAndAggregateMetaSpendData(startDate, endDate);
             };
 
             return (
@@ -820,7 +856,7 @@
                         <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center text-center">
                             <i className="fas fa-dollar-sign text-5xl text-blue-400 mb-3"></i>
                             <h3 className="text-xl font-bold mb-2">Vendas Totais (Pagos)</h3>
-                            <p className="text-gray-300 text-2xl font-semibold">{formatCurrency(totalSalesPaid)}</p> {/* Corrigido: não multiplica por 100 aqui */}
+                            <p className="text-gray-300 text-2xl font-semibold">{formatCurrency(totalSalesPaid)}</p>
                         </div>
                         <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg flex flex-col items-center justify-center text-center">
                             <i className="fas fa-hand-holding-usd text-5xl text-red-400 mb-3"></i>
@@ -850,7 +886,7 @@
                                 <div key={bot.id} className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg border border-gray-500">
                                     <h4 className="text-xl font-semibold mb-2 text-white">{bot.name} ({bot.status === 'ativo' ? 'Ativo' : 'Inativo'})</h4>
                                     <div className="grid grid-cols-2 gap-y-2 text-gray-300">
-                                        <p><strong>Faturamento:</strong> <span className="text-green-300">{formatCurrency(bot.revenue)}</span></p> {/* Corrigido: não multiplica por 100 aqui */}
+                                        <p><strong>Faturamento:</strong> <span className="text-green-300">{formatCurrency(bot.revenue)}</span></p>
                                         <p><strong>Gastos:</strong> <span className="text-red-300">{formatCurrency(bot.spending)}</span></p>
                                         <p><strong>Lucro:</strong> <span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></p>
                                         <p><strong>Vendas:</strong> <span className="text-blue-300">{filteredSalesData.filter(s => s.model === bot.id).length}</span></p>
@@ -966,7 +1002,8 @@
 
             const totalPixGenerated = filteredSales.filter(s => s.status === 'AGUARDANDO_PAGAMENTO').length;
             const totalPixPaid = filteredSales.filter(s => s.status === 'PAGO').length;
-            const totalAmountPaid = filteredSales.filter(s => s.status === 'PAGO').reduce((sum, s) => sum + s.value / 100, 0); // Usando s.value e dividindo por 100
+            // Calcula o valor total pago em centavos e passa para formatCurrency
+            const totalAmountPaid = filteredSales.filter(s => s.status === 'PAGO').reduce((sum, s) => sum + s.value, 0);
 
             return (
                 <div className="bg-gray-700 dark:bg-gray-800 p-8 rounded-lg shadow-xl text-gray-100 mb-8">
@@ -1029,7 +1066,7 @@
                         </div>
                         <div className="bg-gray-600 dark:bg-gray-700 p-5 rounded-md shadow-lg">
                             <h3 className="text-xl font-bold mb-2 text-purple-300">Valor Total Pago</h3>
-                            <p className="text-white text-3xl font-semibold">{formatCurrency(totalAmountPaid)}</p> {/* Corrigido: não multiplica por 100 aqui */}
+                            <p className="text-white text-3xl font-semibold">{formatCurrency(totalAmountPaid)}</p>
                         </div>
                     </div>
 
@@ -1062,7 +1099,7 @@
                                             <td>{sale.model}</td> {/* Usando sale.model */}
                                             <td>{sale.campaign}</td> {/* Usando sale.campaign */}
                                             <td>{sale.pix_code}</td> {/* Usando sale.pix_code */}
-                                            <td>{formatCurrency(sale.value)}</td> {/* Usando sale.value */}
+                                            <td>{formatCurrency(sale.value)}</td> {/* Usando sale.value (em centavos) */}
                                             <td>{formatDate(sale.generate_date)}</td> {/* Usando sale.generate_date */}
                                             <td>{sale.payment_date ? formatDate(sale.payment_date) : '-'}</td> {/* Usando sale.payment_date */}
                                             <td>
@@ -1324,7 +1361,7 @@
             // Recalcula métricas dos bots sempre que houver mudança nos dados simulados
             const botsWithMetrics = bots.map(bot => {
                 const botSales = []; // Vendas reais por bot precisariam de uma API de vendas que filtre por modelo de bot
-                const botRevenue = botSales.reduce((sum, sale) => sum + sale.value / 100, 0); // Divide por 100
+                const botRevenue = botSales.reduce((sum, sale) => sum + sale.value, 0); // (em centavos)
 
                 // Calcula gastos com base nas campanhas vinculadas
                 // Como MOCK_ADSETS_DATA foi removido, esta parte precisaria de dados reais de adsets.
@@ -1457,7 +1494,7 @@
                                                     {bot.status === 'ativo' ? 'Ativo' : 'Inativo'}
                                                 </span>
                                             </td>
-                                            <td>{formatCurrency(bot.revenue)}</td> {/* Corrigido: não multiplica por 100 aqui */}
+                                            <td>{formatCurrency(bot.revenue)}</td>
                                             <td>{formatCurrency(bot.spending)}</td>
                                             <td><span className={`${bot.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold`}>{formatCurrency(bot.profit)}</span></td>
                                             <td>
@@ -1639,8 +1676,9 @@
             const [activeTab, setActiveTab] = useState('campaigns');
             const [selectedCampaign, setSelectedCampaign] = useState(null); // Novo estado para a campanha clicada
 
-            // **ATENÇÃO: MANTER ESTE TOKEN NO CLIENTE NÃO É SEGURO PARA PRODUÇÃO.**
-            const TOKEN = "EAAIyWkoZCTyQBPIZCw3jcdHSs3qmHVgHk0hOdxw6bzSpENbnRi2vAvHzIxMq89NEfcAxAmYMB6Ne4KqlCUg2cM9LZATk4zsKEgnIGZCdqKobJynkNp869tXKwmFxr03NVMjG7qavPuphYXuTbSBViU0dKf4Qgy9MfFIKkEhHvuGWmZBvqs9A1mb0rMZCVdv2NrQBqcYvFj4mSs3tl06f8t";
+            // ATENÇÃO: SUBSTITUA ESTE TOKEN PELO SEU TOKEN DE ACESSO VÁLIDO DA META ADS API.
+            // MANTER TOKENS DIRETAMENTE NO CÓDIGO DO CLIENTE NÃO É SEGURO PARA PRODUÇÃO.
+            const TOKEN = "EAAIyWkoZCTyQBPCoNeC8WZCqICBf3L4uFY60QXTZAzYvuP9MrSR4RYuA1II4TwtrxFmtOrdLdKbdsZAloc1qUfuzz0kKgsxZCW2acLTr2oEcrrufvwMbMSAmjS7I2YBtgcHWbiXIyZBSXjS0jt7vNxhUsZAmidBTM2w2ZANOGk6kIy9VueXNUwPmJSPWMFMWcbNVAbMrsso4yNZB1iNJqzDjX"; // Seu token de acesso da Meta Ads API aqui
 
             const renderStatus = useCallback((status) => {
                 if (!status) return null;
@@ -1678,6 +1716,11 @@
 
             // Função para buscar as contas de anúncio do usuário
             const fetchAdAccounts = useCallback(async () => {
+                if (!TOKEN) {
+                    showMessage("Token de acesso da Meta Ads API não fornecido. Por favor, insira um token válido na constante TOKEN.", 'warning');
+                    setAdAccounts([]);
+                    return;
+                }
                 try {
                     const url = new URL(`https://graph.facebook.com/v19.0/me/adaccounts`);
                     url.searchParams.set("fields", "id,name");
@@ -1694,13 +1737,20 @@
                     }
                 } catch (err) {
                     console.error("Erro ao carregar contas de anúncio:", err);
-                    showMessage(`Erro ao carregar contas de anúncio: ${err.message}`, 'error');
+                    showMessage(`Erro ao carregar contas de anúncio: ${err.message}. Verifique seu token de acesso da Meta Ads API.`, 'error');
                     setAdAccounts([]);
                 }
             }, [TOKEN, showMessage]);
 
 
             const fetchCampaignsData = useCallback(async (currentAccountId, since, until) => {
+                if (!TOKEN) {
+                    showMessage("Token de acesso da Meta Ads API não fornecido. Por favor, insira um token válido na constante TOKEN.", 'warning');
+                    setCampaigns([]);
+                    setAdsets([]);
+                    setAds([]);
+                    return;
+                }
                 if (!currentAccountId) {
                     setCampaigns([]);
                     setAdsets([]);
@@ -1809,7 +1859,7 @@
                 } catch (err) {
                     setError(err.message);
                     console.error("Erro ao carregar dados de campanhas/adsets/ads:", err);
-                    showMessage(`Erro ao carregar dados: ${err.message}`, 'error');
+                    showMessage(`Erro ao carregar dados: ${err.message}. Verifique seu token de acesso da Meta Ads API.`, 'error');
                 } finally {
                     setLoading(false);
                 }
@@ -1918,12 +1968,12 @@
 
                                     <div className="mt-4 pt-4 border-t border-gray-600">
                                         <h4 className="font-bold text-lg text-green-400 mb-2">Métricas ({formatDate(startDate)} - {formatDate(endDate)})</h4>
-                                        <p className="text-gray-300 text-base mb-1"><strong>Gastos:</strong> <span className="text-red-300 font-semibold">{formatCurrency(item.insights.spend || 0)}</span></p>
+                                        <p className="text-gray-300 text-base mb-1"><strong>Gastos:</strong> <span className="text-red-300 font-semibold">{formatCurrency(parseFloat(item.insights.spend || 0) * 100)}</span></p> {/* Multiplica por 100 para passar em centavos */}
                                         <p className="text-gray-300 text-base mb-1"><strong>Cliques:</strong> <span className="text-blue-300 font-semibold">{item.insights.clicks || 0}</span></p>
                                         <p className="text-gray-300 text-base mb-1"><strong>Impressões:</strong> <span className="text-purple-300 font-semibold">{item.insights.impressions || 0}</span></p>
                                         <p className="text-gray-300 text-base mb-1"><strong>CTR:</strong> <span className="text-orange-300 font-semibold">{(parseFloat(item.insights.ctr || 0)).toFixed(2)}%</span></p>
-                                        <p className="text-gray-300 text-base mb-1"><strong>CPC:</strong> <span className="text-cyan-300 font-semibold">{formatCurrency(item.insights.cpc || 0)}</span></p>
-                                        <p className="text-gray-300 text-base mb-1"><strong>CPM:</strong> <span className="text-pink-300 font-semibold">{formatCurrency(item.insights.cpm || 0)}</span></p>
+                                        <p className="text-gray-300 text-base mb-1"><strong>CPC:</strong> <span className="text-cyan-300 font-semibold">{formatCurrency(parseFloat(item.insights.cpc || 0) * 100)}</span></p> {/* Multiplica por 100 */}
+                                        <p className="text-gray-300 text-base mb-1"><strong>CPM:</strong> <span className="text-pink-300 font-semibold">{formatCurrency(parseFloat(item.insights.cpm || 0) * 100)}</span></p> {/* Multiplica por 100 */}
                                         {renderActions(item.insights.actions)}
                                     </div>
                                 </div>
