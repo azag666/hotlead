@@ -69,13 +69,424 @@
         .custom-table tr:hover {
             background-color: #2a2a2a; /* Lighter hover for dark theme */
         }
+
+        /* Styles for Flow Creator - START */
+        /* These styles are specific to the Flow Creator component */
+        #flow-creator-page .container {
+            display: flex;
+            height: calc(100vh - 64px); /* Adjust for header height */
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #flow-creator-page .sidebar-tools {
+            width: 200px;
+            background-color: #2a2a2a;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        #flow-creator-page .sidebar-tools h3 {
+            color: #f0f0f0;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 10px;
+        }
+
+        #flow-creator-page .tool-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #flow-creator-page .tool-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        #flow-creator-page .tool-button i {
+            font-size: 18px;
+        }
+
+        #flow-creator-page .flow-canvas-wrapper {
+            flex-grow: 1;
+            background-color: #1f1f1f;
+            position: relative;
+            overflow: auto;
+            cursor: grab;
+        }
+
+        #flow-creator-page .flow-canvas-wrapper.dragging {
+            cursor: grabbing;
+        }
+
+        #flow-creator-page .flow-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            padding: 50px;
+            box-sizing: border-box;
+            background-image:
+                linear-gradient(to right, #2a2a2a 1px, transparent 1px),
+                linear-gradient(to bottom, #2a2a2a 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #flow-creator-page .flow-block {
+            background-color: #3a3a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 15px;
+            position: absolute;
+            min-width: 250px;
+            max-width: 350px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #flow-creator-page .flow-block.selected {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px #007bff, 0 4px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        #flow-creator-page .block-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #4a4a4a;
+        }
+
+        #flow-creator-page .block-header i {
+            font-size: 20px;
+            color: #007bff;
+        }
+
+        #flow-creator-page .block-header h4 {
+            margin: 0;
+            color: #f0f0f0;
+            font-size: 16px;
+        }
+
+        #flow-creator-page .block-content p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #b0b0b0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #flow-creator-page .block-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        #flow-creator-page .block-button {
+            background-color: #4a4a4a;
+            color: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 13px;
+            text-align: center;
+            border: 1px solid #5a5a5a;
+        }
+
+        #flow-creator-page .block-media {
+            margin-top: 10px;
+            text-align: center;
+        }
+        #flow-creator-page .block-media img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 5px;
+            object-fit: cover;
+            margin-bottom: 5px;
+        }
+        #flow-creator-page .block-media .media-icon {
+            font-size: 24px;
+            color: #b0b0b0;
+            margin-bottom: 5px;
+        }
+        #flow-creator-page .block-media p {
+            font-size: 12px;
+            color: #7a7a7a;
+            margin: 0;
+        }
+
+        #flow-creator-page .flow-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        #flow-creator-page .flow-lines line {
+            stroke: #007bff;
+            stroke-width: 2;
+            marker-end: url(#arrowhead);
+        }
+
+        #flow-creator-page .properties-panel {
+            width: 350px;
+            background-color: #2a2a2a;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        #flow-creator-page .properties-panel h3 {
+            color: #f0f0f0;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 10px;
+        }
+
+        #flow-creator-page .form-group {
+            margin-bottom: 15px;
+        }
+
+        #flow-creator-page .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+
+        #flow-creator-page .form-group input[type="text"],
+        #flow-creator-page .form-group textarea,
+        #flow-creator-page .form-group select,
+        #flow-creator-page .form-group input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            background-color: #3a3a3a;
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: #e0e0e0;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #flow-creator-page .form-group input[type="file"] {
+            padding: 0;
+            height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        #flow-creator-page .form-group input[type="file"]::-webkit-file-upload-button {
+            visibility: hidden;
+            width: 0;
+            padding: 0;
+            margin: 0;
+        }
+        #flow-creator-page .form-group input[type="file"]::before {
+            content: 'Escolher Arquivo';
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            padding: 8px 12px;
+            outline: none;
+            white-space: nowrap;
+            -webkit-user-select: none;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.3s;
+        }
+        #flow-creator-page .form-group input[type="file"]:hover::before {
+            background-color: #0056b3;
+        }
+        #flow-creator-page .form-group input[type="file"]:active::before {
+            background-color: #004085;
+        }
+
+        #flow-creator-page .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #flow-creator-page .file-input-wrapper input[type="text"] {
+            flex-grow: 1;
+            background-color: #3a3a3a;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            cursor: default;
+        }
+        #flow-creator-page .clear-file-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        #flow-creator-page .clear-file-btn:hover {
+            background-color: #c82333;
+        }
+
+        #flow-creator-page .form-group input[type="text"]:focus,
+        #flow-creator-page .form-group textarea:focus,
+        #flow-creator-page .form-group select:focus {
+            border-color: #007bff;
+        }
+
+        #flow-creator-page .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        #flow-creator-page .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        #flow-creator-page .button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        #flow-creator-page .button-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #flow-creator-page .button-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        #flow-creator-page .button-secondary {
+            background-color: #4a4a4a;
+            color: #e0e0e0;
+        }
+
+        #flow-creator-page .button-secondary:hover {
+            background-color: #6a6a6a;
+            transform: translateY(-1px);
+        }
+
+        #flow-creator-page .button-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        #flow-creator-page .button-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        #flow-creator-page .add-button-btn {
+            background-color: #28a745;
+            color: white;
+            margin-top: 10px;
+            width: 100%;
+        }
+        #flow-creator-page .add-button-btn:hover {
+            background-color: #218838;
+        }
+
+        #flow-creator-page .remove-button-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        #flow-creator-page .remove-button-btn:hover {
+            background-color: #c82333;
+        }
+
+        #flow-creator-page .button-item, #flow-creator-page .header-item, #flow-creator-page .response-item, #flow-creator-page .condition-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            background-color: #4a4a4a;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        #flow-creator-page .button-item input, #flow-creator-page .header-item input, #flow-creator-page .response-item input, #flow-creator-page .condition-item input, #flow-creator-page .condition-item select {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        #flow-creator-page .header-item input:nth-child(1), #flow-creator-page .response-item input:nth-child(1), #flow-creator-page .condition-item input:nth-child(1) {
+            flex-basis: 40%;
+            margin-right: 5px;
+        }
+        #flow-creator-page .header-item input:nth-child(2), #flow-creator-page .response-item input:nth-child(2), #flow-creator-page .condition-item input:nth-child(2) {
+            flex-basis: 40%;
+            margin-right: 10px;
+        }
+        #flow-creator-page .condition-item select {
+            flex-basis: 20%;
+            margin-right: 5px;
+        }
+
+        #flow-creator-page #feedback-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #3a3a3a;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #flow-creator-page #feedback-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        /* Styles for Flow Creator - END */
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
     <div id="root" class="min-h-full flex flex-col"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback, useRef } = React; // Adicionado useRef
+        const { useState, useEffect, useCallback, useRef } = React;
 
         // --- Funções de Ajuda ---
         const formatCurrency = (value) => {
@@ -135,6 +546,7 @@
                                 <li><a href="#" onClick={() => onNavigate('integrations')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'integrations' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plug mr-2"></i> Integrações</a></li>
                                 <li><a href="#" onClick={() => onNavigate('create-checkout')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'create-checkout' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-plus-circle mr-2"></i> Criar Checkout</a></li>
                                 <li><a href="#" onClick={() => onNavigate('campaigns')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'campaigns' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-bullhorn mr-2"></i> Campanhas</a></li>
+                                <li><a href="#" onClick={() => onNavigate('flow-creator')} className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'flow-creator' ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}><i className="fas fa-sitemap mr-2"></i> Criador de Fluxos</a></li>
                             </ul>
                         </nav>
                         <button
@@ -258,7 +670,7 @@
                             <div className="bg-gray-700 p-8 rounded-lg shadow-xl text-center border border-gray-600 hover:border-green-500 transition-all duration-300 transform hover:scale-105">
                                 <i className="fas fa-shopping-cart text-5xl text-pink-400 mb-4"></i>
                                 <h3 className="text-2xl font-semibold text-white mb-3">Criação de Checkouts Otimizados</h3>
-                                <p className className="text-gray-300">Desenvolva páginas de checkout de alta conversão para seus produtos e serviços.</p>
+                                <p className="text-gray-300">Desenvolva páginas de checkout de alta conversão para seus produtos e serviços.</p>
                             </div>
                             <div className="bg-gray-700 p-8 rounded-lg shadow-xl text-center border border-gray-600 hover:border-green-500 transition-all duration-300 transform hover:scale-105">
                                 <i className="fas fa-chart-pie text-5xl text-yellow-400 mb-4"></i>
@@ -1182,7 +1594,7 @@
             const handleConsultStatus = async () => {
                 setLoadingStatus(true);
                 const result = await checkBotStatusAndName(localBot.token);
-                setLoadingStatus(false);
+                setLoadingStatus(null);
 
                 if (result.success) {
                     setLocalBot(prevBot => ({ ...prevBot, name: result.name, status: result.status }));
@@ -2097,6 +2509,1101 @@
             );
         }
 
+        // --- NOVO COMPONENTE: FlowCreatorPage ---
+        function FlowCreatorPage() {
+            const [flow, setFlow] = useState({
+                blocks: [],
+                selectedBlockId: null,
+            });
+
+            const flowCanvasRef = useRef(null);
+            const flowCanvasWrapperRef = useRef(null);
+            const flowLinesSvgRef = useRef(null);
+            const propertiesPanelRef = useRef(null);
+
+            // Refs for properties panel elements
+            const messageTextRef = useRef(null);
+            const imageUploadInputRef = useRef(null);
+            const videoUploadInputRef = useRef(null);
+            const audioUploadInputRef = useRef(null);
+            const messageNextBlockSelectRef = useRef(null);
+
+            const requestMethodSelectRef = useRef(null);
+            const requestUrlInputRef = useRef(null);
+            const requestBodyTextareaRef = useRef(null);
+            const requestNextBlockSelectRef = useRef(null);
+
+            const conditionLogicOperatorSelectRef = useRef(null);
+            const conditionNextTrueSelectRef = useRef(null);
+            const conditionNextFalseSelectRef = useRef(null);
+
+
+            // Canvas Panning State
+            const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
+            const [canvasTranslate, setCanvasTranslate] = useState({ x: 0, y: 0 });
+            const dragStartCoords = useRef({ x: 0, y: 0 });
+
+            // --- Utility Functions ---
+            const generateId = useCallback(() => {
+                return 'block_' + Math.random().toString(36).substr(2, 9);
+            }, []);
+
+            const showFeedback = useCallback((message, type = 'info') => {
+                const feedbackMessageDiv = document.getElementById('flow-creator-page-feedback-message');
+                if (feedbackMessageDiv) {
+                    feedbackMessageDiv.textContent = message;
+                    feedbackMessageDiv.className = `show ${type}`;
+                    setTimeout(() => {
+                        feedbackMessageDiv.classList.remove('show');
+                    }, 3000);
+                }
+            }, []);
+
+            const createBlockElement = useCallback((block) => {
+                const blockElement = document.createElement('div');
+                blockElement.className = 'flow-block';
+                blockElement.id = block.id;
+                blockElement.style.left = `${block.x}px`;
+                blockElement.style.top = `${block.y}px`;
+
+                let iconClass = '';
+                let blockTitle = '';
+                let contentHtml = '';
+                let mediaHtml = '';
+
+                switch (block.type) {
+                    case 'start':
+                        iconClass = 'fas fa-play';
+                        blockTitle = 'Início';
+                        contentHtml = `<p>${block.data.messageText || 'Ponto de entrada do fluxo.'}</p>`;
+                        break;
+                    case 'message':
+                        iconClass = 'fas fa-comment-dots';
+                        blockTitle = 'Mensagem';
+                        contentHtml = `<p>${block.data.messageText || 'Mensagem do bot.'}</p>`;
+
+                        if (block.data.imageDataUrl) {
+                            mediaHtml += `
+                                <div class="block-media">
+                                    <img src="${block.data.imageDataUrl}" alt="Imagem" onerror="this.onerror=null;this.src='https://placehold.co/100x100/3a3a3a/b0b0b0?text=IMG';" />
+                                    <p>Imagem</p>
+                                </div>
+                            `;
+                        }
+                        if (block.data.videoDataUrl) {
+                            mediaHtml += `
+                                <div class="block-media">
+                                    <i class="fas fa-video media-icon"></i>
+                                    <p>Vídeo</p>
+                                </div>
+                            `;
+                        }
+                        if (block.data.audioDataUrl) {
+                            mediaHtml += `
+                                <div class="block-media">
+                                    <i class="fas fa-volume-up media-icon"></i>
+                                    <p>Áudio</p>
+                                </div>
+                            `;
+                        }
+
+                        if (block.data.buttons && block.data.buttons.length > 0) {
+                            contentHtml += '<div class="block-buttons">';
+                            block.data.buttons.forEach(button => {
+                                contentHtml += `<div class="block-button">${button.text}</div>`;
+                            });
+                            contentHtml += '</div>';
+                        }
+                        if (block.data.nextBlockId) {
+                            const nextBlock = flow.blocks.find(b => b.id === block.data.nextBlockId);
+                            if (nextBlock) {
+                                contentHtml += `<p style="font-size:12px; color:#7a7a7a; margin-top:10px;">Próximo: ${nextBlock.name || nextBlock.id}</p>`;
+                            }
+                        }
+                        break;
+                    case 'request':
+                        iconClass = 'fas fa-cloud-upload-alt';
+                        blockTitle = 'Requisição HTTP';
+                        contentHtml = `
+                            <p style="font-size:13px; color:#b0b0b0;">Método: ${block.data.method || 'N/A'}</p>
+                            <p style="font-size:13px; color:#b0b0b0; word-break: break-all;">URL: ${block.data.url ? block.data.url.substring(0, 30) + (block.data.url.length > 30 ? '...' : '') : 'N/A'}</p>
+                        `;
+                        if (block.data.nextBlockId) {
+                            const nextBlock = flow.blocks.find(b => b.id === block.data.nextBlockId);
+                            if (nextBlock) {
+                                contentHtml += `<p style="font-size:12px; color:#7a7a7a; margin-top:10px;">Próximo: ${nextBlock.name || nextBlock.id}</p>`;
+                            }
+                        }
+                        break;
+                    case 'condition':
+                        iconClass = 'fas fa-question-circle';
+                        blockTitle = 'Condição';
+                        const logicOp = block.data.logicOperator === 'and' ? 'Todas' : 'Qualquer';
+                        contentHtml = `<p style="font-size:13px; color:#b0b0b0;">${logicOp} condição(ões):</p>`;
+                        if (block.data.conditions && block.data.conditions.length > 0) {
+                            block.data.conditions.forEach(cond => {
+                                contentHtml += `<p style="font-size:12px; color:#b0b0b0; margin-left:10px;">- ${cond.variable1 || 'Var'} ${cond.operator || '=='} ${cond.value2 || 'Val'}</p>`;
+                            });
+                        } else {
+                            contentHtml += `<p style="font-size:12px; color:#7a7a7a; margin-left:10px;">Nenhuma condição definida.</p>`;
+                        }
+
+                        if (block.data.nextBlockIdTrue) {
+                            const nextBlock = flow.blocks.find(b => b.id === block.data.nextBlockIdTrue);
+                            if (nextBlock) {
+                                contentHtml += `<p style="font-size:12px; color:#7a7a7a; margin-top:5px;">Verdadeiro: ${nextBlock.name || nextBlock.id}</p>`;
+                            }
+                        }
+                        if (block.data.nextBlockIdFalse) {
+                            const nextBlock = flow.blocks.find(b => b.id === block.data.nextBlockIdFalse);
+                            if (nextBlock) {
+                                contentHtml += `<p style="font-size:12px; color:#7a7a7a;">Falso: ${nextBlock.name || nextBlock.id}</p>`;
+                            }
+                        }
+                        break;
+                }
+
+                blockElement.innerHTML = `
+                    <div class="block-header">
+                        <i class="${iconClass}"></i>
+                        <h4>${blockTitle}</h4>
+                    </div>
+                    <div class="block-content">
+                        ${mediaHtml}
+                        ${contentHtml}
+                    </div>
+                `;
+
+                blockElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectBlock(block.id);
+                });
+
+                let isBlockDragging = false;
+                let dragOffsetX, dragOffsetY;
+
+                blockElement.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) {
+                        isBlockDragging = true;
+                        dragOffsetX = e.clientX - blockElement.getBoundingClientRect().left;
+                        dragOffsetY = e.clientY - blockElement.getBoundingClientRect().top;
+                        blockElement.style.cursor = 'grabbing';
+                    }
+                });
+
+                flowCanvasRef.current.addEventListener('mousemove', (e) => {
+                    if (isBlockDragging) {
+                        const canvasRect = flowCanvasRef.current.getBoundingClientRect();
+                        let newX = e.clientX - canvasRect.left - dragOffsetX;
+                        let newY = e.clientY - canvasRect.top - dragOffsetY;
+
+                        setFlow(prevFlow => {
+                            const updatedBlocks = prevFlow.blocks.map(b =>
+                                b.id === block.id ? { ...b, x: newX, y: newY } : b
+                            );
+                            return { ...prevFlow, blocks: updatedBlocks };
+                        });
+                    }
+                });
+
+                flowCanvasRef.current.addEventListener('mouseup', () => {
+                    if (isBlockDragging) {
+                        isBlockDragging = false;
+                        blockElement.style.cursor = 'pointer';
+                        saveFlow();
+                    }
+                });
+
+                return blockElement;
+            }, [flow.blocks, selectBlock, saveFlow]); // Added flow.blocks as dependency
+
+            const renderFlow = useCallback(() => {
+                if (!flowCanvasRef.current || !flowLinesSvgRef.current) return;
+
+                flowCanvasRef.current.innerHTML = '';
+                flowCanvasRef.current.appendChild(flowLinesSvgRef.current);
+
+                flow.blocks.forEach(block => {
+                    const blockElement = createBlockElement(block);
+                    flowCanvasRef.current.appendChild(blockElement);
+                });
+                drawConnections();
+                updatePropertiesPanel();
+            }, [flow.blocks, createBlockElement, drawConnections, updatePropertiesPanel]);
+
+            const addBlock = useCallback((type, name, x, y) => {
+                const newBlock = {
+                    id: generateId(),
+                    name: name,
+                    type: type,
+                    x: x,
+                    y: y,
+                    data: {}
+                };
+
+                if (type === 'message' || type === 'start') {
+                    newBlock.data = {
+                        messageText: '',
+                        buttons: [],
+                        nextBlockId: '',
+                        imageDataUrl: '',
+                        videoDataUrl: '',
+                        audioDataUrl: ''
+                    };
+                } else if (type === 'request') {
+                    newBlock.data = {
+                        method: 'GET',
+                        url: '',
+                        headers: [],
+                        body: '',
+                        responseMapping: [],
+                        nextBlockId: ''
+                    };
+                } else if (type === 'condition') {
+                    newBlock.data = {
+                        logicOperator: 'and',
+                        conditions: [{ variable1: '', operator: '==', value2: '' }],
+                        nextBlockIdTrue: '',
+                        nextBlockIdFalse: ''
+                    };
+                }
+
+                setFlow(prevFlow => ({
+                    ...prevFlow,
+                    blocks: [...prevFlow.blocks, newBlock],
+                    selectedBlockId: newBlock.id
+                }));
+                showFeedback(`Bloco '${name}' adicionado!`, 'success');
+            }, [generateId, showFeedback]);
+
+            const selectBlock = useCallback((id) => {
+                setFlow(prevFlow => ({ ...prevFlow, selectedBlockId: id }));
+                const allBlocks = flowCanvasRef.current ? flowCanvasRef.current.querySelectorAll('.flow-block') : [];
+                allBlocks.forEach(block => block.classList.remove('selected'));
+
+                const selectedElement = document.getElementById(id);
+                if (selectedElement) {
+                    selectedElement.classList.add('selected');
+                }
+            }, []);
+
+            const deleteSelectedBlock = useCallback(() => {
+                if (!flow.selectedBlockId) return;
+
+                const selectedBlock = flow.blocks.find(b => b.id === flow.selectedBlockId);
+                if (selectedBlock && selectedBlock.type === 'start') {
+                    showFeedback('Não é possível excluir o bloco de Início.', 'error');
+                    return;
+                }
+
+                setFlow(prevFlow => {
+                    const updatedBlocks = prevFlow.blocks.map(block => {
+                        if (block.data) {
+                            if (block.data.nextBlockId === prevFlow.selectedBlockId) {
+                                block.data.nextBlockId = '';
+                            }
+                            if (block.data.nextBlockIdTrue === prevFlow.selectedBlockId) {
+                                block.data.nextBlockIdTrue = '';
+                            }
+                            if (block.data.nextBlockIdFalse === prevFlow.selectedBlockId) {
+                                block.data.nextBlockIdFalse = '';
+                            }
+                        }
+                        return block;
+                    }).filter(block => block.id !== prevFlow.selectedBlockId);
+                    return { ...prevFlow, blocks: updatedBlocks, selectedBlockId: null };
+                });
+                saveFlow();
+                showFeedback('Bloco excluído com sucesso!', 'success');
+            }, [flow.selectedBlockId, flow.blocks, showFeedback, saveFlow]);
+
+            const updatePropertiesPanel = useCallback(() => {
+                const selectedBlock = flow.blocks.find(block => block.id === flow.selectedBlockId);
+                const noBlockSelectedMessage = propertiesPanelRef.current.querySelector('#no-block-selected-message');
+                const blockPropertiesContent = propertiesPanelRef.current.querySelector('#block-properties-content');
+                const blockIdDisplay = propertiesPanelRef.current.querySelector('#block-id-display');
+                const blockTypeDisplay = propertiesPanelRef.current.querySelector('#block-type-display');
+
+                const messageBlockProperties = propertiesPanelRef.current.querySelector('#message-block-properties');
+                const requestBlockProperties = propertiesPanelRef.current.querySelector('#request-block-properties');
+                const conditionBlockProperties = propertiesPanelRef.current.querySelector('#condition-block-properties');
+                const buttonsList = propertiesPanelRef.current.querySelector('#buttons-list');
+                const requestHeadersList = propertiesPanelRef.current.querySelector('#request-headers-list');
+                const responseMappingList = propertiesPanelRef.current.querySelector('#response-mapping-list');
+                const conditionsList = propertiesPanelRef.current.querySelector('#conditions-list');
+                const deleteBlockBtn = propertiesPanelRef.current.querySelector('#delete-block');
+
+
+                if (selectedBlock) {
+                    noBlockSelectedMessage.style.display = 'none';
+                    blockPropertiesContent.style.display = 'block';
+
+                    blockIdDisplay.value = selectedBlock.id;
+                    blockTypeDisplay.value = selectedBlock.type.charAt(0).toUpperCase() + selectedBlock.type.slice(1);
+
+                    messageBlockProperties.style.display = (selectedBlock.type === 'message' || selectedBlock.type === 'start') ? 'block' : 'none';
+                    requestBlockProperties.style.display = (selectedBlock.type === 'request') ? 'block' : 'none';
+                    conditionBlockProperties.style.display = (selectedBlock.type === 'condition') ? 'block' : 'none';
+
+                    if (selectedBlock.type === 'message' || selectedBlock.type === 'start') {
+                        if (messageTextRef.current) messageTextRef.current.value = selectedBlock.data.messageText || '';
+                        renderButtons(selectedBlock.data.buttons, buttonsList);
+                        populateNextBlockSelect(messageNextBlockSelectRef.current, selectedBlock.id, selectedBlock.data.nextBlockId);
+
+                        if (imageUploadInputRef.current) imageUploadInputRef.current.value = '';
+                        if (videoUploadInputRef.current) videoUploadInputRef.current.value = '';
+                        if (audioUploadInputRef.current) audioUploadInputRef.current.value = '';
+
+                    } else if (selectedBlock.type === 'request') {
+                        if (requestMethodSelectRef.current) requestMethodSelectRef.current.value = selectedBlock.data.method || 'GET';
+                        if (requestUrlInputRef.current) requestUrlInputRef.current.value = selectedBlock.data.url || '';
+                        renderHeaders(selectedBlock.data.headers, requestHeadersList);
+                        if (requestBodyTextareaRef.current) requestBodyTextareaRef.current.value = selectedBlock.data.body || '';
+                        renderResponseMapping(selectedBlock.data.responseMapping, responseMappingList);
+                        populateNextBlockSelect(requestNextBlockSelectRef.current, selectedBlock.id, selectedBlock.data.nextBlockId);
+                    } else if (selectedBlock.type === 'condition') {
+                        if (conditionLogicOperatorSelectRef.current) conditionLogicOperatorSelectRef.current.value = selectedBlock.data.logicOperator || 'and';
+                        renderConditions(selectedBlock.data.conditions, conditionsList);
+                        populateNextBlockSelect(conditionNextTrueSelectRef.current, selectedBlock.id, selectedBlock.data.nextBlockIdTrue);
+                        populateNextBlockSelect(conditionNextFalseSelectRef.current, selectedBlock.id, selectedBlock.data.nextBlockIdFalse);
+                    }
+
+                    deleteBlockBtn.style.display = (selectedBlock.type === 'start') ? 'none' : 'block';
+
+                } else {
+                    noBlockSelectedMessage.style.display = 'block';
+                    blockPropertiesContent.style.display = 'none';
+                }
+            }, [flow.selectedBlockId, flow.blocks, renderButtons, renderHeaders, renderResponseMapping, renderConditions]);
+
+
+            const renderButtons = useCallback((buttons, buttonsListElement) => {
+                buttonsListElement.innerHTML = '';
+                buttons.forEach((button, index) => {
+                    const buttonItem = document.createElement('div');
+                    buttonItem.className = 'button-item';
+                    buttonItem.innerHTML = `
+                        <input type="text" value="${button.text}" placeholder="Texto do Botão" data-index="${index}">
+                        <button class="remove-button-btn" data-index="${index}"><i class="fas fa-times"></i></button>
+                    `;
+                    buttonsListElement.appendChild(buttonItem);
+
+                    buttonItem.querySelector('input').addEventListener('input', (e) => {
+                        setFlow(prevFlow => {
+                            const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                            if (selectedBlock && selectedBlock.data.buttons[index]) {
+                                selectedBlock.data.buttons[index].text = e.target.value;
+                            }
+                            return { ...prevFlow, blocks: [...prevFlow.blocks] }; // Force re-render
+                        });
+                    });
+
+                    buttonItem.querySelector('.remove-button-btn').addEventListener('click', (e) => {
+                        setFlow(prevFlow => {
+                            const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                            if (selectedBlock) {
+                                selectedBlock.data.buttons.splice(index, 1);
+                            }
+                            return { ...prevFlow, blocks: [...prevFlow.blocks] }; // Force re-render
+                        });
+                        saveFlow();
+                    });
+                });
+            }, [saveFlow]);
+
+            const renderHeaders = useCallback((headers, requestHeadersListElement) => {
+                requestHeadersListElement.innerHTML = '';
+                headers.forEach((header, index) => {
+                    const headerItem = document.createElement('div');
+                    headerItem.className = 'header-item';
+                    headerItem.innerHTML = `
+                        <input type="text" value="${header.key}" placeholder="Key" data-index="${index}" data-field="key">
+                        <input type="text" value="${header.value}" placeholder="Value" data-index="${index}" data-field="value">
+                        <button class="remove-button-btn" data-index="${index}"><i class="fas fa-times"></i></button>
+                    `;
+                    requestHeadersListElement.appendChild(headerItem);
+
+                    headerItem.querySelectorAll('input').forEach(input => {
+                        input.addEventListener('input', (e) => {
+                            setFlow(prevFlow => {
+                                const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                                if (selectedBlock && selectedBlock.data.headers[index]) {
+                                    selectedBlock.data.headers[index][e.target.dataset.field] = e.target.value;
+                                }
+                                return { ...prevFlow, blocks: [...prevFlow.blocks] };
+                            });
+                        });
+                    });
+                    headerItem.querySelector('.remove-button-btn').addEventListener('click', (e) => {
+                        setFlow(prevFlow => {
+                            const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                            if (selectedBlock) {
+                                selectedBlock.data.headers.splice(index, 1);
+                            }
+                            return { ...prevFlow, blocks: [...prevFlow.blocks] };
+                        });
+                        saveFlow();
+                    });
+                });
+            }, [saveFlow]);
+
+            const renderResponseMapping = useCallback((mappings, responseMappingListElement) => {
+                responseMappingListElement.innerHTML = '';
+                mappings.forEach((mapping, index) => {
+                    const mappingItem = document.createElement('div');
+                    mappingItem.className = 'response-item';
+                    mappingItem.innerHTML = `
+                        <input type="text" value="${mapping.jsonPath}" placeholder="JSONPath (ex: $.data.qr_code)" data-index="${index}" data-field="jsonPath">
+                        <input type="text" value="${mapping.variableName}" placeholder="Nome da Variável (ex: qr_code)" data-index="${index}" data-field="variableName">
+                        <button class="remove-button-btn" data-index="${index}"><i class="fas fa-times"></i></button>
+                    `;
+                    responseMappingListElement.appendChild(mappingItem);
+
+                    mappingItem.querySelectorAll('input').forEach(input => {
+                        input.addEventListener('input', (e) => {
+                            setFlow(prevFlow => {
+                                const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                                if (selectedBlock && selectedBlock.data.responseMapping[index]) {
+                                    selectedBlock.data.responseMapping[index][e.target.dataset.field] = e.target.value;
+                                }
+                                return { ...prevFlow, blocks: [...prevFlow.blocks] };
+                            });
+                        });
+                    });
+                    mappingItem.querySelector('.remove-button-btn').addEventListener('click', (e) => {
+                        setFlow(prevFlow => {
+                            const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                            if (selectedBlock) {
+                                selectedBlock.data.responseMapping.splice(index, 1);
+                            }
+                            return { ...prevFlow, blocks: [...prevFlow.blocks] };
+                        });
+                        saveFlow();
+                    });
+                });
+            }, [saveFlow]);
+
+            const renderConditions = useCallback((conditions, conditionsListElement) => {
+                conditionsListElement.innerHTML = '';
+                conditions.forEach((condition, index) => {
+                    const conditionItem = document.createElement('div');
+                    conditionItem.className = 'condition-item';
+                    conditionItem.innerHTML = `
+                        <input type="text" value="${condition.variable1}" placeholder="Variável 1" data-index="${index}" data-field="variable1">
+                        <select data-index="${index}" data-field="operator">
+                            <option value="==" ${condition.operator === '==' ? 'selected' : ''}>==</option>
+                            <option value="!=" ${condition.operator === '!=' ? 'selected' : ''}>!=</option>
+                            <option value=">" ${condition.operator === '>' ? 'selected' : ''}>></option>
+                            <option value="<" ${condition.operator === '<' ? 'selected' : ''}><</option>
+                            <option value=">=" ${condition.operator === '>=' ? 'selected' : ''}>>=</option>
+                            <option value="<=" ${condition.operator === '<=' ? 'selected' : ''}><=</option>
+                            <option value="contains" ${condition.operator === 'contains' ? 'selected' : ''}>Contém</option>
+                            <option value="not_contains" ${condition.operator === 'not_contains' ? 'selected' : ''}>Não Contém</option>
+                        </select>
+                        <input type="text" value="${condition.value2}" placeholder="Valor / Variável 2" data-index="${index}" data-field="value2">
+                        <button class="remove-button-btn" data-index="${index}"><i class="fas fa-times"></i></button>
+                    `;
+                    conditionsListElement.appendChild(conditionItem);
+
+                    conditionItem.querySelectorAll('input, select').forEach(input => {
+                        input.addEventListener('input', (e) => {
+                            setFlow(prevFlow => {
+                                const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                                if (selectedBlock && selectedBlock.data.conditions[index]) {
+                                    selectedBlock.data.conditions[index][e.target.dataset.field] = e.target.value;
+                                }
+                                return { ...prevFlow, blocks: [...prevFlow.blocks] };
+                            });
+                        });
+                    });
+                    conditionItem.querySelector('.remove-button-btn').addEventListener('click', (e) => {
+                        setFlow(prevFlow => {
+                            const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                            if (selectedBlock) {
+                                selectedBlock.data.conditions.splice(index, 1);
+                            }
+                            return { ...prevFlow, blocks: [...prevFlow.blocks] };
+                        });
+                        saveFlow();
+                    });
+                });
+            }, [saveFlow]);
+
+
+            const populateNextBlockSelect = useCallback((selectElement, currentBlockId, selectedNextBlockId) => {
+                if (!selectElement) return;
+                selectElement.innerHTML = '<option value="">Nenhum</option>';
+                flow.blocks.forEach(block => {
+                    if (block.id !== currentBlockId && block.type !== 'start') {
+                        const option = document.createElement('option');
+                        option.value = block.id;
+                        option.textContent = `${block.name || block.type.charAt(0).toUpperCase() + block.type.slice(1)} (${block.id})`;
+                        if (block.id === selectedNextBlockId) {
+                            option.selected = true;
+                        }
+                        selectElement.appendChild(option);
+                    }
+                });
+            }, [flow.blocks]);
+
+            const drawConnections = useCallback(() => {
+                if (!flowLinesSvgRef.current || !flowCanvasRef.current) return;
+
+                flowLinesSvgRef.current.innerHTML = `
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#007bff" />
+                        </marker>
+                        <marker id="arrowhead-true" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#28a745" />
+                        </marker>
+                        <marker id="arrowhead-false" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#dc3545" />
+                        </marker>
+                    </defs>
+                `;
+
+                flow.blocks.forEach(block => {
+                    // Handle single next block connections (message, request)
+                    if ((block.type === 'message' || block.type === 'request') && block.data && block.data.nextBlockId) {
+                        const fromBlockElement = document.getElementById(block.id);
+                        const toBlockElement = document.getElementById(block.data.nextBlockId);
+                        if (fromBlockElement && toBlockElement) {
+                            const line = createLineElement(fromBlockElement, toBlockElement, '#007bff', 'arrowhead');
+                            flowLinesSvgRef.current.appendChild(line);
+                        }
+                    }
+                    // Handle condition block connections
+                    if (block.type === 'condition' && block.data) {
+                        // True branch
+                        if (block.data.nextBlockIdTrue) {
+                            const fromBlockElement = document.getElementById(block.id);
+                            const toBlockElement = document.getElementById(block.data.nextBlockIdTrue);
+                            if (fromBlockElement && toBlockElement) {
+                                const line = createLineElement(fromBlockElement, toBlockElement, '#28a745', 'arrowhead-true');
+                                flowLinesSvgRef.current.appendChild(line);
+                            }
+                        }
+                        // False branch
+                        if (block.data.nextBlockIdFalse) {
+                            const fromBlockElement = document.getElementById(block.id);
+                            const toBlockElement = document.getElementById(block.data.nextBlockIdFalse);
+                            if (fromBlockElement && toBlockElement) {
+                                const line = createLineElement(fromBlockElement, toBlockElement, '#dc3545', 'arrowhead-false');
+                                flowLinesSvgRef.current.appendChild(line);
+                            }
+                        }
+                    }
+                });
+            }, [flow.blocks]);
+
+            const createLineElement = useCallback((fromElement, toElement, color, markerId) => {
+                const fromRect = fromElement.getBoundingClientRect();
+                const toRect = toElement.getBoundingClientRect();
+                const canvasRect = flowCanvasRef.current.getBoundingClientRect();
+
+                const x1 = fromRect.left + fromRect.width / 2 - canvasRect.left;
+                const y1 = fromRect.top + fromRect.height - canvasRect.top;
+
+                const x2 = toRect.left + toRect.width / 2 - canvasRect.left;
+                const y2 = toRect.top - canvasRect.top;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', color);
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('marker-end', `url(#${markerId})`);
+                return line;
+            }, []);
+
+            const handleCanvasMouseDown = useCallback((e) => {
+                if (e.button === 0 && !e.target.closest('.flow-block')) {
+                    setIsDraggingCanvas(true);
+                    flowCanvasWrapperRef.current.classList.add('dragging');
+                    dragStartCoords.current = {
+                        x: e.clientX - canvasTranslate.x,
+                        y: e.clientY - canvasTranslate.y
+                    };
+                    selectBlock(null);
+                }
+            }, [canvasTranslate, selectBlock]);
+
+            const handleCanvasMouseMove = useCallback((e) => {
+                if (isDraggingCanvas) {
+                    const newX = e.clientX - dragStartCoords.current.x;
+                    const newY = e.clientY - dragStartCoords.current.y;
+                    setCanvasTranslate({ x: newX, y: newY });
+                }
+            }, [isDraggingCanvas]);
+
+            const handleCanvasMouseUp = useCallback(() => {
+                setIsDraggingCanvas(false);
+                if (flowCanvasWrapperRef.current) {
+                    flowCanvasWrapperRef.current.classList.remove('dragging');
+                }
+            }, []);
+
+            const handleCanvasMouseLeave = useCallback(() => {
+                setIsDraggingCanvas(false);
+                if (flowCanvasWrapperRef.current) {
+                    flowCanvasWrapperRef.current.classList.remove('dragging');
+                }
+            }, []);
+
+            const handleFileUpload = useCallback((event, mediaType) => {
+                const file = event.target.files[0];
+                const selectedBlock = flow.blocks.find(block => block.id === flow.selectedBlockId);
+
+                if (file && selectedBlock) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        setFlow(prevFlow => {
+                            const updatedBlocks = prevFlow.blocks.map(b => {
+                                if (b.id === prevFlow.selectedBlockId) {
+                                    const newData = { ...b.data };
+                                    if (mediaType === 'image') {
+                                        newData.imageDataUrl = e.target.result;
+                                        newData.videoDataUrl = '';
+                                        newData.audioDataUrl = '';
+                                    } else if (mediaType === 'video') {
+                                        newData.videoDataUrl = e.target.result;
+                                        newData.imageDataUrl = '';
+                                        newData.audioDataUrl = '';
+                                    } else if (mediaType === 'audio') {
+                                        newData.audioDataUrl = e.target.result;
+                                        newData.imageDataUrl = '';
+                                        newData.videoDataUrl = '';
+                                    }
+                                    return { ...b, data: newData };
+                                }
+                                return b;
+                            });
+                            return { ...prevFlow, blocks: updatedBlocks };
+                        });
+                        saveFlow();
+                        showFeedback(`Arquivo ${file.name} carregado (simulado)!`, 'success');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }, [flow.blocks, flow.selectedBlockId, saveFlow, showFeedback]);
+
+            const handleClearFile = useCallback((mediaType) => {
+                setFlow(prevFlow => {
+                    const updatedBlocks = prevFlow.blocks.map(b => {
+                        if (b.id === prevFlow.selectedBlockId) {
+                            const newData = { ...b.data };
+                            if (mediaType === 'image') newData.imageDataUrl = '';
+                            else if (mediaType === 'video') newData.videoDataUrl = '';
+                            else if (mediaType === 'audio') newData.audioDataUrl = '';
+                            return { ...b, data: newData };
+                        }
+                        return b;
+                    });
+                    return { ...prevFlow, blocks: updatedBlocks };
+                });
+                // Clear the actual file input element
+                if (mediaType === 'image' && imageUploadInputRef.current) imageUploadInputRef.current.value = '';
+                if (mediaType === 'video' && videoUploadInputRef.current) videoUploadInputRef.current.value = '';
+                if (mediaType === 'audio' && audioUploadInputRef.current) audioUploadInputRef.current.value = '';
+
+                saveFlow();
+                showFeedback(`Mídia de ${mediaType} limpa.`, 'info');
+            }, [flow.selectedBlockId, flow.blocks, saveFlow, showFeedback]);
+
+
+            const saveFlow = useCallback(() => {
+                try {
+                    localStorage.setItem('telegramFlowMVP', JSON.stringify(flow));
+                    showFeedback('Fluxo salvo no navegador!', 'success');
+                } catch (e) {
+                    showFeedback('Erro ao salvar fluxo: ' + e.message, 'error');
+                }
+            }, [flow, showFeedback]);
+
+            const loadFlow = useCallback(() => {
+                try {
+                    const savedFlowData = localStorage.getItem('telegramFlowMVP');
+                    if (savedFlowData) {
+                        const loadedFlow = JSON.parse(savedFlowData);
+                        let startBlock = loadedFlow.blocks.find(b => b.type === 'start');
+                        if (!startBlock) {
+                            startBlock = { id: generateId(), name: 'Início', type: 'start', x: 50, y: 50, data: { messageText: 'Bem-vindo ao seu bot!' } };
+                            loadedFlow.blocks.unshift(startBlock);
+                        } else {
+                            loadedFlow.blocks = loadedFlow.blocks.filter(b => b.id !== startBlock.id);
+                            loadedFlow.blocks.unshift(startBlock);
+                        }
+                        setFlow(loadedFlow);
+                        showFeedback('Fluxo carregado do navegador!', 'success');
+                    } else {
+                        showFeedback('Nenhum fluxo salvo encontrado.', 'info');
+                        initializeDefaultFlow();
+                    }
+                } catch (e) {
+                    showFeedback('Erro ao carregar fluxo: ' + e.message, 'error');
+                    initializeDefaultFlow();
+                }
+            }, [generateId, showFeedback]);
+
+            const clearFlow = useCallback(() => {
+                if (confirm('Tem certeza que deseja limpar todo o fluxo? Isso não pode ser desfeito.')) {
+                    localStorage.removeItem('telegramFlowMVP');
+                    initializeDefaultFlow();
+                    showFeedback('Fluxo limpo!', 'info');
+                }
+            }, [showFeedback]);
+
+            const initializeDefaultFlow = useCallback(() => {
+                const newStartBlock = { id: generateId(), name: 'Início', type: 'start', x: 50, y: 50, data: { messageText: 'Bem-vindo ao seu bot!' } };
+                setFlow({
+                    blocks: [newStartBlock],
+                    selectedBlockId: null,
+                });
+            }, [generateId]);
+
+            // Effects
+            useEffect(() => {
+                loadFlow();
+            }, [loadFlow]);
+
+            useEffect(() => {
+                renderFlow();
+            }, [flow, renderFlow]); // Re-render flow when flow state changes
+
+            useEffect(() => {
+                if (flowCanvasRef.current) {
+                    flowCanvasRef.current.style.transform = `translate(${canvasTranslate.x}px, ${canvasTranslate.y}px)`;
+                    drawConnections();
+                }
+            }, [canvasTranslate, drawConnections]);
+
+
+            // Event Handlers for Properties Panel
+            const handleSaveBlockProperties = useCallback(() => {
+                setFlow(prevFlow => {
+                    const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                    if (selectedBlock) {
+                        const updatedData = { ...selectedBlock.data };
+                        if (selectedBlock.type === 'message' || selectedBlock.type === 'start') {
+                            updatedData.messageText = messageTextRef.current ? messageTextRef.current.value : '';
+                            updatedData.nextBlockId = messageNextBlockSelectRef.current ? messageNextBlockSelectRef.current.value : '';
+                        } else if (selectedBlock.type === 'request') {
+                            updatedData.method = requestMethodSelectRef.current ? requestMethodSelectRef.current.value : 'GET';
+                            updatedData.url = requestUrlInputRef.current ? requestUrlInputRef.current.value : '';
+                            updatedData.body = requestBodyTextareaRef.current ? requestBodyTextareaRef.current.value : '';
+                            updatedData.nextBlockId = requestNextBlockSelectRef.current ? requestNextBlockSelectRef.current.value : '';
+                        } else if (selectedBlock.type === 'condition') {
+                            updatedData.logicOperator = conditionLogicOperatorSelectRef.current ? conditionLogicOperatorSelectRef.current.value : 'and';
+                            updatedData.nextBlockIdTrue = conditionNextTrueSelectRef.current ? conditionNextTrueSelectRef.current.value : '';
+                            updatedData.nextBlockIdFalse = conditionNextFalseSelectRef.current ? conditionNextFalseSelectRef.current.value : '';
+                        }
+                        const updatedBlocks = prevFlow.blocks.map(b =>
+                            b.id === prevFlow.selectedBlockId ? { ...b, data: updatedData } : b
+                        );
+                        return { ...prevFlow, blocks: updatedBlocks };
+                    }
+                    return prevFlow;
+                });
+                saveFlow();
+                showFeedback('Propriedades salvas!', 'success');
+            }, [flow.selectedBlockId, saveFlow, showFeedback]);
+
+            const handleAddButtonToBlock = useCallback(() => {
+                setFlow(prevFlow => {
+                    const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                    if (selectedBlock) {
+                        const updatedData = { ...selectedBlock.data };
+                        if (!updatedData.buttons) {
+                            updatedData.buttons = [];
+                        }
+                        updatedData.buttons.push({ text: 'Novo Botão' });
+                        const updatedBlocks = prevFlow.blocks.map(b =>
+                            b.id === prevFlow.selectedBlockId ? { ...b, data: updatedData } : b
+                        );
+                        return { ...prevFlow, blocks: updatedBlocks };
+                    }
+                    return prevFlow;
+                });
+            }, [flow.selectedBlockId]);
+
+            const handleAddRequestHeader = useCallback(() => {
+                setFlow(prevFlow => {
+                    const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                    if (selectedBlock && selectedBlock.type === 'request') {
+                        const updatedData = { ...selectedBlock.data };
+                        if (!updatedData.headers) {
+                            updatedData.headers = [];
+                        }
+                        updatedData.headers.push({ key: '', value: '' });
+                        const updatedBlocks = prevFlow.blocks.map(b =>
+                            b.id === prevFlow.selectedBlockId ? { ...b, data: updatedData } : b
+                        );
+                        return { ...prevFlow, blocks: updatedBlocks };
+                    }
+                    return prevFlow;
+                });
+            }, [flow.selectedBlockId]);
+
+            const handleAddResponseMapping = useCallback(() => {
+                setFlow(prevFlow => {
+                    const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                    if (selectedBlock && selectedBlock.type === 'request') {
+                        const updatedData = { ...selectedBlock.data };
+                        if (!updatedData.responseMapping) {
+                            updatedData.responseMapping = [];
+                        }
+                        updatedData.responseMapping.push({ jsonPath: '', variableName: '' });
+                        const updatedBlocks = prevFlow.blocks.map(b =>
+                            b.id === prevFlow.selectedBlockId ? { ...b, data: updatedData } : b
+                        );
+                        return { ...prevFlow, blocks: updatedBlocks };
+                    }
+                    return prevFlow;
+                });
+            }, [flow.selectedBlockId]);
+
+            const handleAddConditionItem = useCallback(() => {
+                setFlow(prevFlow => {
+                    const selectedBlock = prevFlow.blocks.find(block => block.id === prevFlow.selectedBlockId);
+                    if (selectedBlock && selectedBlock.type === 'condition') {
+                        const updatedData = { ...selectedBlock.data };
+                        if (!updatedData.conditions) {
+                            updatedData.conditions = [];
+                        }
+                        updatedData.conditions.push({ variable1: '', operator: '==', value2: '' });
+                        const updatedBlocks = prevFlow.blocks.map(b =>
+                            b.id === prevFlow.selectedBlockId ? { ...b, data: updatedData } : b
+                        );
+                        return { ...prevFlow, blocks: updatedBlocks };
+                    }
+                    return prevFlow;
+                });
+            }, [flow.selectedBlockId]);
+
+
+            return (
+                <div id="flow-creator-page" className="min-h-full flex flex-col">
+                    <div className="container">
+                        {/* Sidebar de Ferramentas */}
+                        <div className="sidebar-tools">
+                            <h3>Blocos</h3>
+                            <button className="tool-button" onClick={() => addBlock('message', 'Nova Mensagem', 50, 50)}>
+                                <i className="fas fa-comment-dots"></i> Adicionar Mensagem
+                            </button>
+                            <button className="tool-button" onClick={() => addBlock('request', 'Nova Requisição', 50, 50)}>
+                                <i className="fas fa-cloud-upload-alt"></i> Adicionar Requisição
+                            </button>
+                            <button className="tool-button" onClick={() => addBlock('condition', 'Nova Condição', 50, 50)}>
+                                <i className="fas fa-question-circle"></i> Adicionar Condição
+                            </button>
+                            <button className="tool-button" disabled style={{ opacity: 0.6 }}>
+                                <i className="fas fa-money-bill-wave"></i> Gerar PIX (Futuro)
+                            </button>
+                            <hr style={{ borderColor: '#3a3a3a', margin: '20px 0' }} />
+                            <h3>Ações do Fluxo</h3>
+                            <button className="tool-button button-secondary" onClick={saveFlow}>
+                                <i className="fas fa-save"></i> Salvar Fluxo
+                            </button>
+                            <button className="tool-button button-secondary" onClick={loadFlow}>
+                                <i className="fas fa-folder-open"></i> Carregar Fluxo
+                            </button>
+                            <button className="tool-button button-danger" onClick={clearFlow}>
+                                <i className="fas fa-trash-alt"></i> Limpar Fluxo
+                            </button>
+                        </div>
+
+                        {/* Área do Canvas */}
+                        <div
+                            className={`flow-canvas-wrapper ${isDraggingCanvas ? 'dragging' : ''}`}
+                            ref={flowCanvasWrapperRef}
+                            onMouseDown={handleCanvasMouseDown}
+                            onMouseMove={handleCanvasMouseMove}
+                            onMouseUp={handleCanvasMouseUp}
+                            onMouseLeave={handleCanvasMouseLeave}
+                        >
+                            <div
+                                className="flow-canvas"
+                                ref={flowCanvasRef}
+                                style={{ transform: `translate(${canvasTranslate.x}px, ${canvasTranslate.y}px)` }}
+                            >
+                                <svg className="flow-lines" ref={flowLinesSvgRef}>
+                                    {/* Markers and lines will be drawn by drawConnections */}
+                                </svg>
+                                {/* Blocks will be injected here via JavaScript */}
+                            </div>
+                        </div>
+
+                        {/* Painel de Propriedades */}
+                        <div className="properties-panel" ref={propertiesPanelRef}>
+                            <h3>Propriedades do Bloco</h3>
+                            <div id="no-block-selected-message">
+                                <p style={{ color: '#b0b0b0' }}>Selecione um bloco no canvas para editar suas propriedades.</p>
+                            </div>
+
+                            <div id="block-properties-content" style={{ display: flow.selectedBlockId ? 'block' : 'none' }}>
+                                <div className="form-group">
+                                    <label htmlFor="block-id-display">ID do Bloco</label>
+                                    <input type="text" id="block-id-display" disabled value={flow.selectedBlockId || ''} />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="block-type-display">Tipo</label>
+                                    <input type="text" id="block-type-display" disabled value={flow.blocks.find(b => b.id === flow.selectedBlockId)?.type.charAt(0).toUpperCase() + flow.blocks.find(b => b.id === flow.selectedBlockId)?.type.slice(1) || ''} />
+                                </div>
+
+                                {/* Propriedades para Bloco de Mensagem */}
+                                <div id="message-block-properties" style={{ display: (flow.blocks.find(b => b.id === flow.selectedBlockId)?.type === 'message' || flow.blocks.find(b => b.id === flow.selectedBlockId)?.type === 'start') ? 'block' : 'none' }}>
+                                    <div className="form-group">
+                                        <label htmlFor="message-text">Texto da Mensagem</label>
+                                        <textarea ref={messageTextRef} id="message-text" placeholder="Digite a mensagem do seu bot..."></textarea>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="image-upload">Upload de Imagem</label>
+                                        <div className="file-input-wrapper">
+                                            <input type="file" id="image-upload" accept="image/*" ref={imageUploadInputRef} onChange={(e) => handleFileUpload(e, 'image')} />
+                                            <button className="clear-file-btn" onClick={() => handleClearFile('image')}>Limpar</button>
+                                        </div>
+                                        <small style={{ color: '#7a7a7a' }}>Apenas para visualização no editor. Upload real requer back-end.</small>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="video-upload">Upload de Vídeo</label>
+                                        <div className="file-input-wrapper">
+                                            <input type="file" id="video-upload" accept="video/*" ref={videoUploadInputRef} onChange={(e) => handleFileUpload(e, 'video')} />
+                                            <button className="clear-file-btn" onClick={() => handleClearFile('video')}>Limpar</button>
+                                        </div>
+                                        <small style={{ color: '#7a7a7a' }}>Apenas para visualização no editor. Upload real requer back-end.</small>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="audio-upload">Upload de Áudio</label>
+                                        <div className="file-input-wrapper">
+                                            <input type="file" id="audio-upload" accept="audio/*" ref={audioUploadInputRef} onChange={(e) => handleFileUpload(e, 'audio')} />
+                                            <button className="clear-file-btn" onClick={() => handleClearFile('audio')}>Limpar</button>
+                                        </div>
+                                        <small style={{ color: '#7a7a7a' }}>Apenas para visualização no editor. Upload real requer back-end.</small>
+                                    </div>
+
+                                    <div className="form-group" id="buttons-group">
+                                        <label>Botões</label>
+                                        <div id="buttons-list">
+                                            {/* Buttons will be injected here */}
+                                        </div>
+                                        <button className="button add-button-btn" onClick={handleAddButtonToBlock}>
+                                            <i className="fas fa-plus"></i> Adicionar Botão
+                                        </button>
+                                    </div>
+
+                                    <div className="form-group" id="next-block-group">
+                                        <label htmlFor="message-next-block-select">Próximo Bloco (Conexão)</label>
+                                        <select ref={messageNextBlockSelectRef} id="message-next-block-select">
+                                            <option value="">Nenhum</option>
+                                            {/* Options will be loaded via JS */}
+                                        </select>
+                                        <small style={{ color: '#7a7a7a' }}>Selecione para onde o fluxo irá após este bloco.</small>
+                                    </div>
+                                </div>
+
+                                {/* Propriedades para Bloco de Requisição */}
+                                <div id="request-block-properties" style={{ display: flow.blocks.find(b => b.id === flow.selectedBlockId)?.type === 'request' ? 'block' : 'none' }}>
+                                    <div className="form-group">
+                                        <label htmlFor="request-method">Método</label>
+                                        <select ref={requestMethodSelectRef} id="request-method">
+                                            <option value="GET">GET</option>
+                                            <option value="POST">POST</option>
+                                            <option value="PUT">PUT</option>
+                                            <option value="DELETE">DELETE</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="request-url">URL</label>
+                                        <input type="text" ref={requestUrlInputRef} id="request-url" placeholder="Ex: https://api.exemplo.com/data" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Cabeçalhos</label>
+                                        <div id="request-headers-list">
+                                            {/* Headers will be injected here */}
+                                        </div>
+                                        <button className="button add-button-btn" onClick={handleAddRequestHeader}>
+                                            <i className="fas fa-plus"></i> Adicionar Cabeçalho
+                                        </button>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="request-body">Corpo da Requisição (JSON)</label>
+                                        <textarea ref={requestBodyTextareaRef} id="request-body" placeholder='Ex: {"key": "value"}'></textarea>
+                                        <small style={{ color: '#7a7a7a' }}>Use JSON válido. Variáveis podem ser usadas aqui.</small>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Mapeamento de Resposta (JSONPath para Variável)</label>
+                                        <div id="response-mapping-list">
+                                            {/* Response mappings will be injected here */}
+                                        </div>
+                                        <button className="button add-button-btn" onClick={handleAddResponseMapping}>
+                                            <i className="fas fa-plus"></i> Adicionar Mapeamento
+                                        </button>
+                                        <small style={{ color: '#7a7a7a' }}>Ex: `$.data.name` para `nome_usuario`</small>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="request-next-block-select">Próximo Bloco (Conexão)</label>
+                                        <select ref={requestNextBlockSelectRef} id="request-next-block-select">
+                                            <option value="">Nenhum</option>
+                                            {/* Options will be loaded via JS */}
+                                        </select>
+                                        <small style={{ color: '#7a7a7a' }}>Para onde o fluxo irá após a requisição.</small>
+                                    </div>
+                                </div>
+
+                                {/* Propriedades para Bloco de Condição */}
+                                <div id="condition-block-properties" style={{ display: flow.blocks.find(b => b.id === flow.selectedBlockId)?.type === 'condition' ? 'block' : 'none' }}>
+                                    <div className="form-group">
+                                        <label htmlFor="condition-logic-operator">Operador Lógico</label>
+                                        <select ref={conditionLogicOperatorSelectRef} id="condition-logic-operator">
+                                            <option value="and">Todas as condições (AND)</option>
+                                            <option value="or">Qualquer condição (OR)</option>
+                                        </select>
+                                    </div>
+                                    <label>Condições</label>
+                                    <div id="conditions-list">
+                                        {/* Condições serão injetadas aqui */}
+                                    </div>
+                                    <button className="button add-button-btn" onClick={handleAddConditionItem}>
+                                        <i className="fas fa-plus"></i> Adicionar Condição
+                                    </button>
+                                    <div className="form-group">
+                                        <label htmlFor="condition-next-true-select">Próximo Bloco (Se Verdadeiro)</label>
+                                        <select ref={conditionNextTrueSelectRef} id="condition-next-true-select">
+                                            <option value="">Nenhum</option>
+                                            {/* Options will be loaded via JS */}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="condition-next-false-select">Próximo Bloco (Se Falso)</label>
+                                        <select ref={conditionNextFalseSelectRef} id="condition-next-false-select">
+                                            <option value="">Nenhum</option>
+                                            {/* Options will be loaded via JS */}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="button-group">
+                                    <button className="button button-primary" onClick={handleSaveBlockProperties}>Salvar Propriedades</button>
+                                    <button className="button button-danger" onClick={deleteSelectedBlock}>Excluir Bloco</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mensagem de feedback (sucesso/erro) */}
+                    <div id="flow-creator-page-feedback-message"></div>
+                </div>
+            );
+        }
+
+
         // --- Componente Principal da Aplicação ---
         function App() {
             const [currentPage, setCurrentPage] = useState('landing'); // Nova página inicial padrão
@@ -2207,6 +3714,7 @@
                                 {currentPage === 'integrations' && <IntegrationsPage showMessage={showMessage} />}
                                 {currentPage === 'create-checkout' && <CreateCheckout />}
                                 {currentPage === 'campaigns' && <CampaignsPage showMessage={showMessage} />}
+                                {currentPage === 'flow-creator' && <FlowCreatorPage />} {/* NEW: Flow Creator Page */}
                                 {/* Botão de Logout para quando estiver logado */}
                                 <div className="fixed bottom-4 right-4">
                                     <button
