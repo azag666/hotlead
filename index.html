@@ -6,6 +6,7 @@
   <title>Redirecionando...</title>
 
   <script>
+    // Script do Pixel do Facebook (mantido)
     !function(f,b,e,v,n,t,s){
       if(f.fbq)return;n=f.fbq=function(){
         n.callMethod? n.callMethod.apply(n,arguments):n.queue.push(arguments)
@@ -30,25 +31,9 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbx0i38S4HIyQUQxO3R7GL2EK804dqw9LeBCvS9jLJBAVPRcH3SwSRgMhZ6AP35HFl9ElQ/exec?path=registerClick';
     const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
 
-    const botKeywords = [
-      'facebookexternalhit', 'facebot', 'twitterbot', 'linkedinbot',
-      'slackbot', 'telegrambot', 'whatsapp', 'discordbot',
-      'googlebot', 'bingbot', 'crawler', 'spider', 'preview',
-      'httpclient', 'fetch'
-    ];
-
-    function isBot() {
-      const ua = navigator.userAgent.toLowerCase();
-      return botKeywords.some(bot => ua.includes(bot));
-    }
-
-    function isMobile() {
-      return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-    }
-
-    function isTouchDevice() {
-      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    }
+    // As funções de detecção de bot e dispositivo (isBot, isMobile, isTouchDevice)
+    // e as palavras-chave foram removidas conforme sua solicitação,
+    // para que a página capture e redirecione todos os usuários.
 
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -58,13 +43,15 @@
     }
 
     function setCookie(name, value, days = 90) {
-      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      const expires = new Date(Date.now() + days * 864e5).toUTCUTCString();
       document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
     }
 
     function getFbclid() {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('fbclid');
+      const fbclid_val = urlParams.get('fbclid');
+      console.log('FBCLID encontrado na URL:', fbclid_val); // Log para depuração
+      return fbclid_val;
     }
 
     function generateFbp() {
@@ -78,38 +65,49 @@
       if (!fbp) {
         fbp = generateFbp();
         setCookie('_fbp', fbp);
+        console.log('Novo _fbp gerado e salvo:', fbp); // Log para depuração
+      } else {
+        console.log('_fbp existente:', fbp); // Log para depuração
       }
       return fbp;
     }
 
     function ensureFbc(fbclid) {
       const current = getCookie('_fbc');
-      if (current && current.endsWith(fbclid)) return current;
+      if (current && current.endsWith(fbclid)) {
+        console.log('_fbc existente e válido:', current); // Log para depuração
+        return current;
+      }
 
       const timestamp = Date.now();
       const fbc = `fb.1.${timestamp}.${fbclid}`;
       setCookie('_fbc', fbc);
+      console.log('Novo _fbc gerado e salvo:', fbc); // Log para depuração
       return fbc;
     }
 
-    // Função atualizada para registrar o clique na sua API do Google Apps Script
+    // Função para registrar o clique na sua API do Google Apps Script
     async function registrarClick(fbclid, fbp) {
+      console.log('Iniciando registro de clique...'); // Log para depuração
+      console.log('Dados enviados para API:', { fbclid, fbp, referer: document.referrer || '' }); // Log para depuração
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
-            // 'x-api-key' não é mais necessário aqui para o Google Apps Script
           },
           body: JSON.stringify({
             fbclid,
             fbp,
-            referer: document.referrer || '' // Inclui o referer
+            referer: document.referrer || ''
           })
         });
 
         const data = await response.json();
+        console.log('Resposta da API do Apps Script:', data); // Log da resposta completa
+
         if (data.status === 'success') {
+          console.log('Click registrado com sucesso. Click ID:', data.click_id); // Log de sucesso
           return data.click_id;
         } else {
           console.error('Erro ao registrar click (API response):', data.message);
@@ -122,32 +120,37 @@
     }
 
     (async function main() {
-      // Verifica se é bot ou não é dispositivo móvel com toque
-      if (isBot() || !(isMobile() && isTouchDevice())) {
-        window.location.replace('https://fernandatamires.netlify.app/'); // Redireciona para página neutra
-        return;
-      }
+      console.log('Iniciando script principal...'); // Log para depuração
 
       const fbclid = getFbclid();
-      if (!fbclid) {
-        window.location.replace('https://fernandatamires.netlify.app/'); // Redireciona se não houver fbclid
-        return;
-      }
+      // O fbclid pode ser null se o usuário não vier de uma campanha do Facebook,
+      // mas ainda tentaremos registrar o clique e redirecionar.
 
       const fbp = ensureFbp(); // Garante que o _fbp exista e seja salvo no cookie
       ensureFbc(fbclid); // Garante que o _fbc exista e seja salvo no cookie
 
+      console.log('Chamando registrarClick com fbclid:', fbclid, 'e fbp:', fbp); // Log para depuração
       const click_id = await registrarClick(fbclid, fbp); // Registra o clique e obtém o click_id
 
+      let redirectUrl;
       if (click_id) {
-        const url = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
-        window.location.replace(url); // Redireciona para o Telegram com o click_id
+        // Se um click_id foi obtido com sucesso, redireciona para o Telegram com ele.
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
+        console.log('Click ID obtido. Redirecionando para Telegram com click_id:', redirectUrl); // Log para depuração
       } else {
-        window.location.replace('https://fernandatamires.netlify.app/'); // Redireciona fallback em caso de erro
+        // Se não houver click_id (ex: erro na API do Apps Script ou fbclid ausente),
+        // ainda redireciona para o Telegram, mas sem o parâmetro 'start'.
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`;
+        console.log('Erro ao obter Click ID ou FBCLID ausente. Redirecionando para Telegram sem click_id:', redirectUrl); // Log para depuração
       }
+      window.location.replace(redirectUrl); // Redireciona para o Telegram
     })();
   </script>
 </head>
 <body>
+  <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+    <p>Redirecionando você...</p>
+    <!-- Opcional: Adicionar um pequeno spinner CSS aqui -->
+  </div>
 </body>
 </html>
